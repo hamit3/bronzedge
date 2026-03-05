@@ -42,19 +42,36 @@ function App() {
           algorithm: theme.darkAlgorithm,
           token: {
             colorPrimary: "#f88601",
-            borderRadius: 8,
+            borderRadius: 6,
+            fontSize: 13,
+            colorTextSecondary: "rgba(255, 255, 255, 0.65)",
           },
           components: {
+            Typography: {
+              fontSizeHeading1: 22,
+              fontSizeHeading2: 18,
+              fontSizeHeading3: 16,
+              fontSizeHeading4: 14,
+              fontSizeHeading5: 13,
+            },
             Button: {
               colorPrimary: "#f88601",
               colorPrimaryHover: "#ff9d2e",
               colorPrimaryActive: "#e67a00",
+              controlHeight: 32,
             },
             Input: {
               colorPrimary: "#f88601",
               activeBorderColor: "#f88601",
               hoverBorderColor: "#f88601",
+              controlHeight: 32,
             },
+            Card: {
+              paddingLG: 16,
+            },
+            Layout: {
+              headerPadding: "0 20px",
+            }
           },
         }}
       >
