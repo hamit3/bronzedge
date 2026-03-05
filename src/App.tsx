@@ -134,11 +134,16 @@ function App() {
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '12px',
-                              padding: '16px 0'
+                              justifyContent: 'center',
+                              padding: '12px 0',
+                              width: '100%',
+                              transition: 'all 0.3s'
                             }}>
-                              <img src="/BronzEdge_Logo.png" alt="Logo" style={{ height: '24px' }} />
-                              {!collapsed && <span style={{ fontWeight: 'bold', fontSize: '18px' }}>Bronzedge</span>}
+                              {collapsed ? (
+                                <img src="/logo-icon.png" alt="Icon" style={{ width: '28px', height: 'auto' }} />
+                              ) : (
+                                <img src="/BronzEdge_Logo.png" alt="Logo" style={{ width: '140px', height: 'auto' }} />
+                              )}
                             </div>
                           )}
                         >
