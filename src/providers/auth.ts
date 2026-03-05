@@ -20,7 +20,7 @@ const authProvider: AuthProvider = {
         if (data?.url) {
           return {
             success: true,
-            redirectTo: "/dashboard",
+            redirectTo: "/devices",
           };
         }
       }
@@ -43,7 +43,7 @@ const authProvider: AuthProvider = {
       if (data?.user) {
         return {
           success: true,
-          redirectTo: "/dashboard",
+          redirectTo: "/devices",
         };
       }
     } catch (error: any) {
@@ -78,7 +78,7 @@ const authProvider: AuthProvider = {
       if (data) {
         return {
           success: true,
-          redirectTo: "/dashboard",
+          redirectTo: "/devices",
         };
       }
     } catch (error: any) {
@@ -148,7 +148,7 @@ const authProvider: AuthProvider = {
       if (data) {
         return {
           success: true,
-          redirectTo: "/dashboard",
+          redirectTo: "/devices",
         };
       }
     } catch (error: any) {

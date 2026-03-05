@@ -31,6 +31,7 @@ import { AlertList } from "./pages/alerts";
 import { ReportList } from "./pages/reports";
 import { SettingsPage } from "./pages/settings";
 import { Header } from "./components/header";
+import { ErrorPage } from "./pages/error";
 
 function App() {
   return (
@@ -39,7 +40,7 @@ function App() {
         theme={{
           algorithm: theme.darkAlgorithm,
           token: {
-            colorPrimary: "#c29141",
+            colorPrimary: "#f88601",
             borderRadius: 6,
             fontSize: 13,
             colorTextSecondary: "rgba(255, 255, 255, 0.65)",
@@ -53,23 +54,23 @@ function App() {
               fontSizeHeading5: 13,
             },
             Button: {
-              colorPrimary: "#c29141",
-              colorPrimaryHover: "#d4a354",
-              colorPrimaryActive: "#b08030",
+              colorPrimary: "#f88601",
+              colorPrimaryHover: "#ff9d2e",
+              colorPrimaryActive: "#e67a00",
               controlHeight: 32,
             },
             Input: {
-              colorPrimary: "#c29141",
-              activeBorderColor: "#c29141",
-              hoverBorderColor: "#c29141",
+              colorPrimary: "#f88601",
+              activeBorderColor: "#f88601",
+              hoverBorderColor: "#f88601",
               controlHeight: 32,
             },
             Select: {
-              colorPrimary: "#c29141",
+              colorPrimary: "#f88601",
               controlHeight: 32,
             },
             DatePicker: {
-              colorPrimary: "#c29141",
+              colorPrimary: "#f88601",
               controlHeight: 32,
             },
             Card: {
@@ -220,7 +221,7 @@ function App() {
                   >
                     <Route path="/login" element={<LoginPage />} />
                   </Route>
-                  <Route path="*" element={<ErrorComponent />} />
+                  <Route path="*" element={<ErrorPage />} />
                 </Routes>
                 <RefineKbar />
                 <UnsavedChangesNotifier />

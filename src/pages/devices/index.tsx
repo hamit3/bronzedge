@@ -100,7 +100,7 @@ export const DeviceList: React.FC = () => {
             key: "name",
             render: (text: string, record: DeviceAsset) => (
                 <Space>
-                    <DesktopOutlined style={{ color: '#c29141', opacity: 0.8 }} />
+                    <DesktopOutlined style={{ color: '#f88601', opacity: 0.8 }} />
                     <div>
                         <Text strong style={{ fontSize: '13px' }}>{text}</Text>
                         <br />
@@ -200,7 +200,7 @@ export const DeviceList: React.FC = () => {
             <Drawer
                 title={
                     <Space>
-                        <ApiOutlined style={{ color: '#c29141' }} />
+                        <ApiOutlined style={{ color: '#f88601' }} />
                         <Title level={4} style={{ margin: 0 }}>Register New Industrial IoT Device</Title>
                     </Space>
                 }
