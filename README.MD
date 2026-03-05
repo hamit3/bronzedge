@@ -1,48 +1,71 @@
-# bronzedge
+# Bronzedge - Industrial IoT Dashboard
 
-<div align="center" style="margin: 30px;">
-    <a href="https://refine.dev">
-    <img alt="refine logo" src="https://refine.ams3.cdn.digitaloceanspaces.com/readme/refine-readme-banner.png">
-    </a>
-</div>
-<br/>
+Bronzedge is a modern Industrial IoT management dashboard built with Refine, Ant Design, and Supabase.
 
-This [Refine](https://github.com/refinedev/refine) project was generated with [create refine-app](https://github.com/refinedev/refine/tree/master/packages/create-refine-app).
+## ✨ Features
 
-## Getting Started
+- **Refine Framework:** Powerful CRUD and data management.
+- **Ant Design UI:** Clean, industrial design with custom dark theme.
+- **Supabase Backend:** Backend-as-a-service for database and authentication.
+- **Custom Aesthetic:** Premium dark mode with animated circuit backgrounds.
 
-A React Framework for building internal tools, admin panels, dashboards & B2B apps with unmatched flexibility ✨
+## 🛠 Tech Stack
 
-Refine's hooks and components simplifies the development process and eliminates the repetitive tasks by providing industry-standard solutions for crucial aspects of a project, including authentication, access control, routing, networking, state management, and i18n.
+- [Refine](https://refine.dev/)
+- [Ant Design](https://ant.design/)
+- [Supabase](https://supabase.com/)
+- [Vite](https://vitejs.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
 
-## Available Scripts
+## 🚀 Getting Started
 
-### Running the development server.
+### Prerequisites
+
+- Node.js (v18+)
+- npm or yarn
+
+### Installation
+
+1. Clone the project or navigate to the directory.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   - Create a `.env.local` file (copy from `.env.example`).
+   - Add your Supabase URL and Anon Key.
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+### Running the Project
 
 ```bash
-    npm run dev
+npm run dev
 ```
 
-### Building for production.
+Open [http://localhost:5173](http://localhost:5173) to see the result.
 
-```bash
-    npm run build
+## 📂 Project Structure
+
+```
+src/
+  pages/
+    login/         # Custom dark theme login page
+    dashboard/     # IoT dashboard landing
+  components/      # Reusable UI components
+  providers/       # Authentication and data providers
+  utils/           # Helper functions and utilities
 ```
 
-### Running the production server.
+## 🎨 Theme Configuration
 
-```bash
-    npm run start
-```
+The application uses a custom Ant Design theme with:
+- **Primary Color:** `#f88601` (Bronzedge Orange)
+- **Background:** `#0a0f1e` (Deep Space Dark)
+- **Algorithm:** Dark Algorithm
 
-## Learn More
-
-To learn more about **Refine**, please check out the [Documentation](https://refine.dev/docs)
-
-- **Ant Design** [Docs](https://refine.dev/docs/ui-frameworks/antd/tutorial/)
-- **React Router** [Docs](https://refine.dev/docs/core/providers/router-provider/)
-- **Supabase Data Provider** [Docs](https://refine.dev/docs/core/providers/data-provider/#overview)
-
-## License
-
-MIT
+---
+Built with ❤️ for industrial excellence.
