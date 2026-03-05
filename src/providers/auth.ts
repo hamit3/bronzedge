@@ -26,12 +26,14 @@ const authProvider: AuthProvider = {
       }
 
       // sign in with email and password
+      console.log("Attempting login for:", email);
       const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error("Supabase Login Error:", error.message, error.status);
         return {
           success: false,
           error,
