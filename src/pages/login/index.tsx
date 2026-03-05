@@ -25,7 +25,7 @@ export const LoginPage: React.FC = () => {
                     placement: "topRight",
                     style: {
                         backgroundColor: "#161d31",
-                        border: "1px solid #f88601",
+                        border: "1px solid #c29141",
                     },
                 });
             },
@@ -86,8 +86,8 @@ export const LoginPage: React.FC = () => {
                                         height: "50px",
                                         fontSize: "16px",
                                         fontWeight: "600",
-                                        background: "#f88601",
-                                        borderColor: "#f88601"
+                                        background: "#c29141",
+                                        borderColor: "#c29141"
                                     }}
                                 >
                                     Sign In

@@ -17,10 +17,8 @@ import authProvider from "./providers/auth";
 import { dataProvider } from "./providers/data";
 import { supabaseClient } from "./providers/supabase-client";
 import { LoginPage } from "./pages/login";
-import { DashboardPage } from "./pages/dashboard";
 
 import {
-  DashboardOutlined,
   DesktopOutlined,
   BarChartOutlined,
   AlertOutlined,
@@ -41,7 +39,7 @@ function App() {
         theme={{
           algorithm: theme.darkAlgorithm,
           token: {
-            colorPrimary: "#f88601",
+            colorPrimary: "#c29141",
             borderRadius: 6,
             fontSize: 13,
             colorTextSecondary: "rgba(255, 255, 255, 0.65)",
@@ -55,15 +53,23 @@ function App() {
               fontSizeHeading5: 13,
             },
             Button: {
-              colorPrimary: "#f88601",
-              colorPrimaryHover: "#ff9d2e",
-              colorPrimaryActive: "#e67a00",
+              colorPrimary: "#c29141",
+              colorPrimaryHover: "#d4a354",
+              colorPrimaryActive: "#b08030",
               controlHeight: 32,
             },
             Input: {
-              colorPrimary: "#f88601",
-              activeBorderColor: "#f88601",
-              hoverBorderColor: "#f88601",
+              colorPrimary: "#c29141",
+              activeBorderColor: "#c29141",
+              hoverBorderColor: "#c29141",
+              controlHeight: 32,
+            },
+            Select: {
+              colorPrimary: "#c29141",
+              controlHeight: 32,
+            },
+            DatePicker: {
+              colorPrimary: "#c29141",
               controlHeight: 32,
             },
             Card: {
@@ -85,14 +91,6 @@ function App() {
                 authProvider={authProvider}
                 routerProvider={routerProvider}
                 resources={[
-                  {
-                    name: "dashboard",
-                    list: "/dashboard",
-                    meta: {
-                      label: "Dashboard",
-                      icon: <DashboardOutlined />,
-                    },
-                  },
                   {
                     name: "devices",
                     list: "/devices",
@@ -206,8 +204,7 @@ function App() {
                       </Authenticated>
                     }
                   >
-                    <Route index element={<CatchAllNavigate to="/dashboard" />} />
-                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route index element={<CatchAllNavigate to="/devices" />} />
                     <Route path="/devices" element={<DeviceList />} />
                     <Route path="/monitoring" element={<MonitoringPage />} />
                     <Route path="/alerts" element={<AlertList />} />
@@ -217,7 +214,7 @@ function App() {
                   <Route
                     element={
                       <Authenticated key="authenticated-outer" fallback={<Outlet />}>
-                        <CatchAllNavigate to="/dashboard" />
+                        <CatchAllNavigate to="/devices" />
                       </Authenticated>
                     }
                   >

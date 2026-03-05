@@ -27,9 +27,9 @@
 }
 
 .login-back-button:hover {
-  color: #f88601;
-  background: rgba(248, 134, 1, 0.1);
-  border-color: rgba(248, 134, 1, 0.2);
+  color: #c29141;
+  background: rgba(194, 145, 65, 0.1);
+  border-color: rgba(194, 145, 65, 0.2);
   transform: translateX(-4px);
 }
 
@@ -52,8 +52,8 @@
   right: 0;
   bottom: 0;
   background-image:
-    linear-gradient(rgba(248, 134, 1, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(248, 134, 1, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(194, 145, 65, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(194, 145, 65, 0.03) 1px, transparent 1px);
   background-size: 40px 40px;
   animation: backgroundMove 60s linear infinite;
   z-index: 2;
@@ -86,7 +86,7 @@
   color: white;
   background: rgba(10, 15, 30, 0.3);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(248, 134, 1, 0.1);
+  border-right: 1px solid rgba(194, 145, 65, 0.1);
   overflow: hidden;
   text-align: center;
 }
@@ -132,7 +132,7 @@
   background: transparent;
   padding: 20px;
   border-radius: 24px;
-  border: 1px solid rgba(248, 134, 1, 0.15);
+  border: 1px solid rgba(194, 145, 65, 0.15);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
@@ -146,14 +146,14 @@
 
 .login-form .ant-input-affix-wrapper {
   background: rgba(10, 15, 30, 0.6) !important;
-  border-color: rgba(248, 134, 1, 0.2) !important;
+  border-color: rgba(194, 145, 65, 0.2) !important;
   padding: 12px 16px !important;
   border-radius: 10px !important;
 }
 
 .login-form .ant-input-affix-wrapper:hover,
 .login-form .ant-input-affix-wrapper-focused {
-  border-color: #f88601 !important;
+  border-color: #c29141 !important;
 }
 
 .login-form .ant-input {
@@ -163,7 +163,7 @@
 }
 
 .login-form .ant-input-prefix {
-  color: #f88601 !important;
+  color: #c29141 !important;
   margin-right: 14px !important;
   font-size: 18px !important;
 }
@@ -193,7 +193,7 @@
 }
 
 .login-contact-link:hover {
-  color: #ff9d2e;
+  color: #d4a354;
   text-decoration: underline;
 }
 
@@ -217,7 +217,7 @@
     flex: none;
     padding: 60px 40px;
     border-right: none;
-    border-bottom: 1px solid rgba(248, 134, 1, 0.1);
+    border-bottom: 1px solid rgba(194, 145, 65, 0.1);
   }
 
   .login-image-element {
