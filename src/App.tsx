@@ -2,7 +2,7 @@ import { Refine, Authenticated } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
-import { useNotificationProvider, ThemedLayout, ErrorComponent } from "@refinedev/antd";
+import { useNotificationProvider, ThemedLayout, ErrorComponent, ThemedSider } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
 
 import routerProvider, {
@@ -32,6 +32,7 @@ import { MonitoringPage } from "./pages/monitoring";
 import { AlertList } from "./pages/alerts";
 import { ReportList } from "./pages/reports";
 import { SettingsPage } from "./pages/settings";
+import { Header } from "./components/header";
 
 function App() {
   return (
@@ -130,6 +131,8 @@ function App() {
                         fallback={<CatchAllNavigate to="/login" />}
                       >
                         <ThemedLayout
+                          Header={Header}
+                          Sider={(props) => <ThemedSider {...props} render={({ items }) => <>{items}</>} />}
                           Title={({ collapsed }) => (
                             <div style={{
                               display: 'flex',

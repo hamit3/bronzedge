@@ -1,61 +1,114 @@
-import type { RefineThemedLayoutHeaderProps } from "@refinedev/antd";
-import { useGetIdentity } from "@refinedev/core";
-import {
-  Layout as AntdLayout,
-  Avatar,
-  Space,
-  Switch,
-  theme,
-  Typography,
-} from "antd";
-import React, { useContext } from "react";
-import { ColorModeContext } from "../../contexts/color-mode";
+import React, { useState } from "react";
+import { useGetIdentity, useLogout, useMenu } from "@refinedev/core";
+import { Layout, Avatar, Typography, Dropdown, MenuProps, theme, AutoComplete, Input } from "antd";
+import { LogoutOutlined, UserOutlined, SearchOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router";
 
 const { Text } = Typography;
 const { useToken } = theme;
 
-type IUser = {
-  id: number;
-  name: string;
-  avatar: string;
-};
-
-export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({
-  sticky = true,
-}) => {
+export const Header: React.FC = () => {
   const { token } = useToken();
-  const { data: user } = useGetIdentity<IUser>();
-  const { mode, setMode } = useContext(ColorModeContext);
+  const { data: user } = useGetIdentity<any>();
+  const { mutate: logout } = useLogout();
+  const { menuItems } = useMenu();
+  const navigate = useNavigate();
+  const [options, setOptions] = useState<{ label: string; value: string }[]>([]);
 
-  const headerStyles: React.CSSProperties = {
-    backgroundColor: token.colorBgElevated,
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    padding: "0px 24px",
-    height: "64px",
+  const handleSearch = (value: string) => {
+    if (!value) {
+      setOptions([]);
+      return;
+    }
+
+    const filtered = menuItems
+      .filter((item) =>
+        item.label?.toString().toLowerCase().includes(value.toLowerCase()) ||
+        item.name.toLowerCase().includes(value.toLowerCase())
+      )
+      .map((item) => ({
+        label: item.label?.toString() || item.name,
+        value: item.route || `/${item.name}`,
+      }));
+
+    setOptions(filtered);
   };
 
-  if (sticky) {
-    headerStyles.position = "sticky";
-    headerStyles.top = 0;
-    headerStyles.zIndex = 1;
-  }
+  const onSelect = (value: string) => {
+    navigate(value);
+  };
+
+  const menuItemsList: MenuProps['items'] = [
+    {
+      key: "user-info",
+      label: (
+        <div style={{ padding: "4px 12px" }}>
+          <Text strong style={{ display: "block" }}>{user?.email}</Text>
+          <Text type="secondary" style={{ fontSize: "12px" }}>Admin</Text>
+        </div>
+      ),
+      disabled: true,
+    },
+    { type: 'divider' },
+    {
+      key: "logout",
+      label: "Logout",
+      icon: <LogoutOutlined />,
+      onClick: () => logout(),
+    },
+  ];
 
   return (
-    <AntdLayout.Header style={headerStyles}>
-      <Space>
-        <Switch
-          checkedChildren="🌛"
-          unCheckedChildren="🔆"
-          onChange={() => setMode(mode === "light" ? "dark" : "light")}
-          defaultChecked={mode === "dark"}
-        />
-        <Space style={{ marginLeft: "8px" }} size="middle">
-          {user?.name && <Text strong>{user.name}</Text>}
-          {user?.avatar && <Avatar src={user?.avatar} alt={user?.name} />}
-        </Space>
-      </Space>
-    </AntdLayout.Header>
+    <Layout.Header
+      style={{
+        backgroundColor: token.colorBgContainer,
+        display: "flex",
+        justifyContent: "flex-end", // Aligned to right
+        alignItems: "center",
+        padding: "0 24px",
+        height: "64px",
+        position: "sticky",
+        top: 0,
+        zIndex: 999,
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        gap: "24px" // Space between search and profile
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "320px" }}>
+        <AutoComplete
+          options={options}
+          onSearch={handleSearch}
+          onSelect={onSelect}
+          style={{ width: "100%" }}
+        >
+          <Input
+            prefix={<SearchOutlined style={{ color: token.colorTextTertiary }} />}
+            placeholder="Quick search..."
+            variant="filled"
+            style={{
+              backgroundColor: token.colorFillTertiary,
+              borderRadius: "8px",
+              border: "none",
+              padding: "6px 12px"
+            }}
+          />
+        </AutoComplete>
+      </div>
+
+      <Dropdown menu={{ items: menuItemsList }} trigger={["click"]} placement="bottomRight">
+        <div style={{ cursor: "pointer", display: "flex", alignItems: "center" }}>
+          <Avatar
+            shape="circle"
+            size="large"
+            style={{
+              backgroundColor: token.colorPrimary,
+              border: `2px solid ${token.colorPrimary}4D`
+            }}
+            icon={<UserOutlined />}
+            src={user?.avatar_url}
+          />
+        </div>
+      </Dropdown>
+    </Layout.Header>
   );
 };
