@@ -11,7 +11,7 @@ import routerProvider, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import { liveProvider } from "@refinedev/supabase";
-import { App as AntdApp, ConfigProvider, theme } from "antd";
+import { App as AntdApp, ConfigProvider, theme, Tooltip, Badge } from "antd";
 import { BrowserRouter, Route, Routes, Outlet } from "react-router";
 import authProvider from "./providers/auth";
 import { dataProvider } from "./providers/data";
@@ -132,7 +132,6 @@ function App() {
                       >
                         <ThemedLayout
                           Header={Header}
-                          Sider={(props) => <ThemedSider {...props} render={({ items }) => <>{items}</>} />}
                           Title={({ collapsed }) => (
                             <div style={{
                               display: 'flex',
@@ -151,6 +150,41 @@ function App() {
                           )}
                         >
                           <Outlet />
+
+                          {/* Floating System Status */}
+                          <div style={{
+                            position: 'fixed',
+                            bottom: '24px',
+                            right: '24px',
+                            zIndex: 1000,
+                            pointerEvents: 'none'
+                          }}>
+                            <Tooltip title="System Health: Operational" placement="left">
+                              <div style={{
+                                pointerEvents: 'auto',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                padding: '6px 14px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                backdropFilter: 'blur(8px)',
+                                borderRadius: '20px',
+                                border: '1px solid rgba(82, 196, 26, 0.3)',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                                cursor: 'help'
+                              }}>
+                                <Badge status="processing" color="#52c41a" />
+                                <span style={{
+                                  color: "#52c41a",
+                                  fontSize: "11px",
+                                  fontWeight: 600,
+                                  letterSpacing: '0.5px'
+                                }}>
+                                  SYSTEM OPERATIONAL
+                                </span>
+                              </div>
+                            </Tooltip>
+                          </div>
                         </ThemedLayout>
                       </Authenticated>
                     }
