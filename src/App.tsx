@@ -180,7 +180,7 @@ function App() {
                                   fontWeight: 600,
                                   letterSpacing: '0.5px'
                                 }}>
-                                  SYSTEM OPERATIONAL
+                                  HEALTHY
                                 </span>
                               </div>
                             </Tooltip>
