@@ -475,20 +475,17 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({
                         }
                         name="device_id"
                         rules={[
-                            { required: true, message: "Please enter the nRF Cloud device ID." },
-                            {
-                                pattern: /^nrf-\d{15}$/,
-                                message: 'Must match nRF Cloud format, e.g. "nrf-351358811234567"',
-                            },
+                            { required: true, message: "Please enter the device ID." },
+                            { max: 100, message: "Device ID cannot exceed 100 characters." },
                         ]}
                         extra={
                             <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
-                                E.g. nrf-351358811234567
+                                Enter the unique ID of your device (max 100 chars). E.g. nrf-351358811234567
                             </Text>
                         }
                     >
                         <Input
-                            placeholder="nrf-351358811234567"
+                            placeholder="e.g. nrf-351358811234567"
                             style={{ fontFamily: "monospace" }}
                         />
                     </Form.Item>

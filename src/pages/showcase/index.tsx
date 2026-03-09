@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useList, useInvalidate } from "@refinedev/core";
+import { useOrganization } from "../../contexts/organization";
 import { useTable } from "@refinedev/antd";
 import {
     Row, Col, Card, Statistic, Table, Tag, Typography, Space,
@@ -52,6 +53,7 @@ export const ShowcasePage: React.FC = () => {
     const [mapView, setMapView] = useState<'chart' | 'googlemaps'>('chart');
     const [activeMarker, setActiveMarker] = useState<number | null>(null);
     const invalidate = useInvalidate();
+    const { activeOrgId } = useOrganization();
 
     const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '';
 
@@ -62,27 +64,53 @@ export const ShowcasePage: React.FC = () => {
     // --- One week ago boundary (ISO string, computed once per render) ---
     const weekAgo = useMemo(() => dayjs().subtract(7, "day").toISOString(), []);
 
+    // --- Organisation's devices (for the selector) ---
+    const devicesQuery = useList({
+        resource: "devices",
+        filters: activeOrgId
+            ? [{ field: "organization_id", operator: "eq", value: activeOrgId }]
+            : [],
+        pagination: { pageSize: 200 },
+        sorters: [{ field: "name", order: "asc" }],
+        queryOptions: { enabled: !!activeOrgId },
+    });
+    const devicesData = (devicesQuery.query.data?.data ?? []) as any[];
+    const devicesLoading = devicesQuery.query.isLoading;
+
+    const deviceIds = useMemo(() => devicesData.map((d: any) => d.device_id as string), [devicesData]);
+
     // --- Filters ---
     const filters = useMemo(() => {
         const base: any[] = [{ field: "ts", operator: "gte", value: weekAgo }];
-        if (selectedDeviceId) base.push({ field: "device_id", operator: "eq", value: selectedDeviceId });
+        if (selectedDeviceId) {
+            base.push({ field: "device_id", operator: "eq", value: selectedDeviceId });
+        } else if (deviceIds.length > 0) {
+            // If no specific device selected, show data for all devices in the org
+            base.push({ field: "device_id", operator: "in", value: deviceIds });
+        } else {
+            // If org has no devices, return a filter that matches nothing
+            base.push({ field: "device_id", operator: "eq", value: "00000000-0000-0000-0000-000000000000" });
+        }
         return base;
-    }, [selectedDeviceId, weekAgo]);
+    }, [selectedDeviceId, weekAgo, deviceIds]);
 
-    // --- Data Hooks ---
-    // device_status: no date filter — fetch ALL registered devices
-    const devicesQuery = useList({
+    // --- Device Status (Telemetries like battery, firmware, etc.) ---
+    const statusQuery = useList({
         resource: "device_status",
-        pagination: { pageSize: 1000 },
-        sorters: [{ field: "device_id", order: "asc" }],
+        filters: [
+            { field: "device_id", operator: "in", value: deviceIds.length > 0 ? deviceIds : ["0"] }
+        ],
+        pagination: { pageSize: 200 },
+        queryOptions: { enabled: deviceIds.length > 0 },
     });
-    const devicesData = devicesQuery.query.data?.data ?? [];
-    const devicesLoading = devicesQuery.query.isLoading;
+    const statusData = (statusQuery.query.data?.data ?? []) as any[];
+    const statusLoading = statusQuery.query.isLoading;
 
-    const deviceIds = useMemo(() => {
-        const ids = new Set(devicesData.map((d: any) => d.device_id));
-        return Array.from(ids) as string[];
-    }, [devicesData]);
+    // Helper: get friendly name for a device_id
+    const getDeviceName = useCallback(
+        (did: string) => devicesData.find((d: any) => d.device_id === did)?.name ?? did,
+        [devicesData]
+    );
 
     // Auto-select the first device once the list loads
     useEffect(() => {
@@ -96,6 +124,7 @@ export const ShowcasePage: React.FC = () => {
         filters,
         pagination: { pageSize: 500 },
         sorters: [{ field: "ts", order: "desc" }],
+        queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
     const tempData = tempQuery.query.data?.data ?? [];
     const tempLoading = tempQuery.query.isLoading;
@@ -105,6 +134,7 @@ export const ShowcasePage: React.FC = () => {
         filters,
         pagination: { pageSize: 500 },
         sorters: [{ field: "ts", order: "desc" }],
+        queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
     const rsrpData = rsrpQuery.query.data?.data ?? [];
     const rsrpLoading = rsrpQuery.query.isLoading;
@@ -114,6 +144,7 @@ export const ShowcasePage: React.FC = () => {
         filters,
         pagination: { pageSize: 100 },
         sorters: [{ field: "ts", order: "desc" }],
+        queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
     const alertCount = alertsQuery.query.data?.total ?? 0;
 
@@ -122,6 +153,7 @@ export const ShowcasePage: React.FC = () => {
         filters,
         pagination: { pageSize: 500 },
         sorters: [{ field: "ts", order: "desc" }],
+        queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
     const gnssData = gnssQuery.query.data?.data ?? [];
     const gnssLoading = gnssQuery.query.isLoading;
@@ -131,6 +163,7 @@ export const ShowcasePage: React.FC = () => {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         await Promise.all([
+            invalidate({ resource: "devices", invalidates: ["list"] }),
             invalidate({ resource: "device_status", invalidates: ["list"] }),
             invalidate({ resource: "temp_readings", invalidates: ["list"] }),
             invalidate({ resource: "rsrp_readings", invalidates: ["list"] }),
@@ -174,27 +207,26 @@ export const ShowcasePage: React.FC = () => {
     const { tableProps: logsTableProps } = useTable({
         resource: "device_logs",
         filters: {
-            initial: [
-                { field: "ts", operator: "gte", value: weekAgo },
-                ...filters.filter((f: any) => f.field === "device_id"),
-            ],
+            permanent: filters
         },
         sorters: { initial: [{ field: "ts", order: "desc" }] },
         pagination: { pageSize: 20 },
         syncWithLocation: false,
+        queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
 
     const { tableProps: rawTableProps } = useTable({
         resource: "raw_messages",
         filters: {
-            initial: [
+            permanent: [
                 { field: "received_at", operator: "gte", value: weekAgo },
-                ...filters.filter((f: any) => f.field === "device_id"),
-            ],
+                ...filters.filter(f => f.field === "device_id")
+            ]
         },
         sorters: { initial: [{ field: "received_at", order: "desc" }] },
         pagination: { pageSize: 20 },
         syncWithLocation: false,
+        queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
 
 
@@ -207,23 +239,31 @@ export const ShowcasePage: React.FC = () => {
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <Title level={2} style={{ color: "#f88601", margin: 0 }}>
-                            System Capabilities Showcase
+                            Monitoring
                         </Title>
                         <Text type="secondary">
-                            Live telemetry from your Supabase database — {new Date().toLocaleString('tr-TR')}
+                            Live telemetry from your devices — {new Date().toLocaleString('tr-TR')}
                         </Text>
                     </div>
                     <Space size="middle">
                         <Select
-                            placeholder="All Devices"
-                            style={{ width: 220 }}
+                            placeholder={devicesLoading ? "Loading devices…" : deviceIds.length === 0 ? "No devices in org" : "Select device"}
+                            style={{ width: 240 }}
                             allowClear
                             onChange={setSelectedDeviceId}
                             value={selectedDeviceId}
                             dropdownStyle={{ background: '#1d1d1d' }}
+                            loading={devicesLoading}
+                            disabled={devicesLoading || deviceIds.length === 0}
+                            optionLabelProp="label"
                         >
-                            {deviceIds.map(id => (
-                                <Option key={id} value={id}>{id}</Option>
+                            {devicesData.map((d: any) => (
+                                <Option key={d.device_id} value={d.device_id} label={d.name ?? d.device_id}>
+                                    <div>
+                                        <div style={{ fontWeight: 600, color: '#fff' }}>{d.name ?? <em style={{ color: 'rgba(255,255,255,0.35)' }}>Unnamed</em>}</div>
+                                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>{d.device_id}</div>
+                                    </div>
+                                </Option>
                             ))}
                         </Select>
                         <Button
@@ -280,7 +320,7 @@ export const ShowcasePage: React.FC = () => {
                     <Col xs={24} sm={12} md={6}>
                         <Card bordered={false} className="dashboard-card">
                             <Statistic
-                                title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Active Devices</span>}
+                                title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Active Devices (Org)</span>}
                                 value={devicesLoading ? "--" : deviceIds.length}
                                 suffix={devicesLoading ? "" : " Nodes"}
                                 prefix={<DeploymentUnitOutlined style={{ color: "#52c41a" }} />}
@@ -523,10 +563,15 @@ export const ShowcasePage: React.FC = () => {
                             label: <span><FileSearchOutlined /> Device Status</span>,
                             children: (
                                 <Table
-                                    dataSource={devicesData as any[]} loading={devicesLoading}
+                                    dataSource={statusData as any[]} loading={statusLoading}
                                     rowKey="id" size="small" className="industrial-table"
                                     columns={[
-                                        { title: "Device ID", dataIndex: "device_id" },
+                                        {
+                                            title: "Name",
+                                            key: "name",
+                                            render: (record: any) => <Text style={{ fontWeight: 600, color: '#fff' }}>{getDeviceName(record.device_id)}</Text>
+                                        },
+                                        { title: "Device ID", dataIndex: "device_id", render: (v: any) => <code style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{v}</code> },
                                         { title: "Firmware", dataIndex: "firmware" },
                                         { title: "Battery", dataIndex: "battery_mv", render: (v: any) => <Text style={{ color: v < 3600 ? '#ff4d4f' : '#52c41a' }}>{v} mV</Text> },
                                         { title: "Operator", dataIndex: "operator" },
