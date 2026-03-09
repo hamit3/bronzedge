@@ -2,7 +2,7 @@ import { Refine, Authenticated } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
-import { useNotificationProvider, ThemedLayout, ErrorComponent, ThemedSider } from "@refinedev/antd";
+import { useNotificationProvider, ThemedLayout, ThemedSider } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
 
 import routerProvider, {
@@ -20,18 +20,12 @@ import { LoginPage } from "./pages/login";
 import { OrganizationProvider } from "./contexts/organization";
 
 import {
-  DesktopOutlined,
   BarChartOutlined,
-  AlertOutlined,
   FileTextOutlined,
-  SettingOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { DeviceList } from "./pages/devices";
-import { MonitoringPage } from "./pages/monitoring";
-import { AlertList } from "./pages/alerts";
+
 import { ReportList } from "./pages/reports";
-import { SettingsPage } from "./pages/settings";
 import { Header } from "./components/header";
 import { ErrorPage } from "./pages/error";
 import { ShowcasePage } from "./pages/showcase";
@@ -83,7 +77,7 @@ function App() {
             },
             Layout: {
               headerPadding: "0 20px",
-            }
+            },
           },
         }}
       >
@@ -99,22 +93,6 @@ function App() {
                   routerProvider={routerProvider}
                   resources={[
                     {
-                      name: "showcase",
-                      list: "/showcase",
-                      meta: {
-                        label: "Showcase",
-                        icon: <BarChartOutlined />,
-                      },
-                    },
-                    {
-                      name: "devices",
-                      list: "/devices",
-                      meta: {
-                        label: "Assets & Devices",
-                        icon: <DesktopOutlined />,
-                      },
-                    },
-                    {
                       name: "monitoring",
                       list: "/monitoring",
                       meta: {
@@ -123,27 +101,11 @@ function App() {
                       },
                     },
                     {
-                      name: "alerts",
-                      list: "/alerts",
-                      meta: {
-                        label: "Alerts",
-                        icon: <AlertOutlined />,
-                      },
-                    },
-                    {
                       name: "reports",
                       list: "/reports",
                       meta: {
                         label: "Reports",
                         icon: <FileTextOutlined />,
-                      },
-                    },
-                    {
-                      name: "settings",
-                      list: "/settings",
-                      meta: {
-                        label: "Settings",
-                        icon: <SettingOutlined />,
                       },
                     },
                     {
@@ -170,19 +132,35 @@ function App() {
                         >
                           <ThemedLayout
                             Header={Header}
+                            Sider={(props) => (
+                              <ThemedSider
+                                {...props}
+                                render={({ items }: { items: React.ReactNode; logout: React.ReactNode }) => items}
+                              />
+                            )}
                             Title={({ collapsed }) => (
-                              <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '12px 0',
-                                width: '100%',
-                                transition: 'all 0.3s'
-                              }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  padding: "12px 0",
+                                  width: "100%",
+                                  transition: "all 0.3s",
+                                }}
+                              >
                                 {collapsed ? (
-                                  <img src="/logo-icon.png" alt="Icon" style={{ width: '28px', height: 'auto' }} />
+                                  <img
+                                    src="/logo-icon.png"
+                                    alt="Icon"
+                                    style={{ width: "28px", height: "auto" }}
+                                  />
                                 ) : (
-                                  <img src="/BronzEdge_Logo.png" alt="Logo" style={{ width: '140px', height: 'auto' }} />
+                                  <img
+                                    src="/BronzEdge_Logo.png"
+                                    alt="Logo"
+                                    style={{ width: "140px", height: "auto" }}
+                                  />
                                 )}
                               </div>
                             )}
@@ -190,34 +168,43 @@ function App() {
                             <Outlet />
 
                             {/* Floating System Status */}
-                            <div style={{
-                              position: 'fixed',
-                              bottom: '24px',
-                              right: '24px',
-                              zIndex: 1000,
-                              pointerEvents: 'none'
-                            }}>
-                              <Tooltip title="System Health: Operational" placement="left">
-                                <div style={{
-                                  pointerEvents: 'auto',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '10px',
-                                  padding: '6px 14px',
-                                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                                  backdropFilter: 'blur(8px)',
-                                  borderRadius: '20px',
-                                  border: '1px solid rgba(82, 196, 26, 0.3)',
-                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                                  cursor: 'help'
-                                }}>
+                            <div
+                              style={{
+                                position: "fixed",
+                                bottom: "24px",
+                                right: "24px",
+                                zIndex: 1000,
+                                pointerEvents: "none",
+                              }}
+                            >
+                              <Tooltip
+                                title="System Health: Operational"
+                                placement="left"
+                              >
+                                <div
+                                  style={{
+                                    pointerEvents: "auto",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "10px",
+                                    padding: "6px 14px",
+                                    backgroundColor: "rgba(0, 0, 0, 0.6)",
+                                    backdropFilter: "blur(8px)",
+                                    borderRadius: "20px",
+                                    border: "1px solid rgba(82, 196, 26, 0.3)",
+                                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+                                    cursor: "help",
+                                  }}
+                                >
                                   <Badge status="processing" color="#52c41a" />
-                                  <span style={{
-                                    color: "#52c41a",
-                                    fontSize: "11px",
-                                    fontWeight: 600,
-                                    letterSpacing: '0.5px'
-                                  }}>
+                                  <span
+                                    style={{
+                                      color: "#52c41a",
+                                      fontSize: "11px",
+                                      fontWeight: 600,
+                                      letterSpacing: "0.5px",
+                                    }}
+                                  >
                                     HEALTHY
                                   </span>
                                 </div>
@@ -227,27 +214,32 @@ function App() {
                         </Authenticated>
                       }
                     >
-                      <Route index element={<CatchAllNavigate to="/showcase" />} />
-                      <Route path="/showcase" element={<ShowcasePage />} />
-                      <Route path="/devices" element={<DeviceList />} />
-                      <Route path="/monitoring" element={<MonitoringPage />} />
-                      <Route path="/alerts" element={<AlertList />} />
+                      <Route
+                        index
+                        element={<CatchAllNavigate to="/monitoring" />}
+                      />
+                      <Route path="/monitoring" element={<ShowcasePage />} />
                       <Route path="/reports" element={<ReportList />} />
-                      <Route path="/settings" element={<SettingsPage />} />
                       <Route path="/account" element={<AccountPage />} />
                     </Route>
                     <Route
                       element={
-                        <Authenticated key="authenticated-outer" fallback={<Outlet />}>
-                          <CatchAllNavigate to="/devices" />
+                        <Authenticated
+                          key="authenticated-outer"
+                          fallback={<Outlet />}
+                        >
+                          <CatchAllNavigate to="/monitoring" />
                         </Authenticated>
                       }
                     >
                       <Route path="/login" element={<LoginPage />} />
                     </Route>
                     <Route path="*" element={<ErrorPage />} />
-                    {/* Public route — accessible from password reset email link */}
-                    <Route path="/update-password" element={<UpdatePasswordPage />} />
+                    {/* Public — accessible from password reset email */}
+                    <Route
+                      path="/update-password"
+                      element={<UpdatePasswordPage />}
+                    />
                   </Routes>
                   <RefineKbar />
                   <UnsavedChangesNotifier />
