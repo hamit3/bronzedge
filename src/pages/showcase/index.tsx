@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useList, useInvalidate } from "@refinedev/core";
 import { useTable } from "@refinedev/antd";
 import {
     Row, Col, Card, Statistic, Table, Tag, Typography, Space,
-    Spin, Empty, Badge, Tabs, Button, Select, Tooltip
+    Spin, Empty, Badge, Tabs, Button, Select, Tooltip, Segmented
 } from "antd";
 import {
     AimOutlined,
@@ -20,6 +20,7 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
     ResponsiveContainer, AreaChart, Area, BarChart, Bar, ScatterChart, Scatter, ZAxis
 } from 'recharts';
+import { GoogleMap, useJsApiLoader, Polyline, Marker, InfoWindow } from '@react-google-maps/api';
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -28,10 +29,35 @@ dayjs.extend(relativeTime);
 const { Title, Text } = Typography;
 const { Option } = Select;
 
+// Google Maps dark theme styles
+const darkMapStyles: google.maps.MapTypeStyle[] = [
+    { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
+    { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#4b6878" }] },
+    { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#4b6878" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
+    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#255763" }] },
+    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
+    { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#023e58" }] },
+    { featureType: "transit", elementType: "labels.text.fill", stylers: [{ color: "#98a5be" }] },
+];
+
 export const ShowcasePage: React.FC = () => {
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [mapView, setMapView] = useState<'chart' | 'googlemaps'>('chart');
+    const [activeMarker, setActiveMarker] = useState<number | null>(null);
     const invalidate = useInvalidate();
+
+    const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '';
+
+    const { isLoaded: mapsLoaded } = useJsApiLoader({
+        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    });
 
     // --- One week ago boundary (ISO string, computed once per render) ---
     const weekAgo = useMemo(() => dayjs().subtract(7, "day").toISOString(), []);
@@ -44,14 +70,26 @@ export const ShowcasePage: React.FC = () => {
     }, [selectedDeviceId, weekAgo]);
 
     // --- Data Hooks ---
+    // device_status: no date filter — fetch ALL registered devices
     const devicesQuery = useList({
         resource: "device_status",
-        pagination: { pageSize: 500 },
-        filters: [{ field: "ts", operator: "gte" as const, value: weekAgo }],
-        sorters: [{ field: "ts", order: "desc" }],
+        pagination: { pageSize: 1000 },
+        sorters: [{ field: "device_id", order: "asc" }],
     });
     const devicesData = devicesQuery.query.data?.data ?? [];
     const devicesLoading = devicesQuery.query.isLoading;
+
+    const deviceIds = useMemo(() => {
+        const ids = new Set(devicesData.map((d: any) => d.device_id));
+        return Array.from(ids) as string[];
+    }, [devicesData]);
+
+    // Auto-select the first device once the list loads
+    useEffect(() => {
+        if (deviceIds.length > 0 && selectedDeviceId === undefined) {
+            setSelectedDeviceId(deviceIds[0]);
+        }
+    }, [deviceIds, selectedDeviceId]);
 
     const tempQuery = useList({
         resource: "temp_readings",
@@ -88,10 +126,7 @@ export const ShowcasePage: React.FC = () => {
     const gnssData = gnssQuery.query.data?.data ?? [];
     const gnssLoading = gnssQuery.query.isLoading;
 
-    const deviceIds = useMemo(() => {
-        const ids = new Set(devicesData.map((d: any) => d.device_id));
-        return Array.from(ids) as string[];
-    }, [devicesData]);
+
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
@@ -218,11 +253,6 @@ export const ShowcasePage: React.FC = () => {
                                 valueStyle={{ color: "#fff" }}
                                 loading={tempLoading}
                             />
-                            {tempData[0]?.device_id && (
-                                <Text style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
-                                    Device: {tempData[0].device_id}
-                                </Text>
-                            )}
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
@@ -328,27 +358,99 @@ export const ShowcasePage: React.FC = () => {
 
                 {/* GNSS */}
                 <Card
-                    title={<span style={{ color: "#fff" }}><GlobalOutlined /> GNSS Trajectory <Tag color="orange">{gnssData.length} points</Tag></span>}
+                    title={
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                            <span style={{ color: "#fff" }}>
+                                <GlobalOutlined /> GNSS Trajectory <Tag color="orange">{gnssData.length} points</Tag>
+                            </span>
+                            <Segmented
+                                value={mapView}
+                                onChange={(v) => setMapView(v as 'chart' | 'googlemaps')}
+                                options={[
+                                    { label: '📈 Chart', value: 'chart' },
+                                    { label: '🗺️ Google Maps', value: 'googlemaps' },
+                                ]}
+                                style={{ background: 'rgba(255,255,255,0.06)' }}
+                            />
+                        </div>
+                    }
                     bordered={false} className="shadow-premium"
                 >
                     <Row gutter={24}>
                         <Col xs={24} lg={16}>
-                            <div style={{ height: 380, background: '#141414', borderRadius: 8, padding: 8 }}>
+                            <div style={{ height: 380, borderRadius: 8, overflow: 'hidden' }}>
                                 {gnssLoading ? (
                                     <div style={centeredStyle}><Spin /></div>
-                                ) : mapData.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <ScatterChart>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
-                                            <XAxis type="number" dataKey="x" name="Lng" domain={['auto', 'auto']} hide />
-                                            <YAxis type="number" dataKey="y" name="Lat" domain={['auto', 'auto']} hide />
-                                            <ZAxis type="category" dataKey="name" name="Time" />
-                                            <ChartTooltip contentStyle={{ background: "#1d1d1d", border: "1px solid rgba(255,255,255,0.1)" }} />
-                                            <Scatter data={mapData} fill="#f88601" line={{ stroke: '#f88601', strokeWidth: 1.5, strokeDasharray: '4 2' }} />
-                                        </ScatterChart>
-                                    </ResponsiveContainer>
-                                ) : (
+                                ) : mapData.length === 0 ? (
                                     <div style={centeredStyle}><Empty description={<span style={{ color: 'rgba(255,255,255,0.4)' }}>No GNSS data.</span>} /></div>
+                                ) : mapView === 'chart' ? (
+                                    <div style={{ height: '100%', background: '#141414', padding: 8, borderRadius: 8 }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <ScatterChart>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
+                                                <XAxis type="number" dataKey="x" name="Lng" domain={['auto', 'auto']} hide />
+                                                <YAxis type="number" dataKey="y" name="Lat" domain={['auto', 'auto']} hide />
+                                                <ZAxis type="category" dataKey="name" name="Time" />
+                                                <ChartTooltip contentStyle={{ background: "#1d1d1d", border: "1px solid rgba(255,255,255,0.1)" }} />
+                                                <Scatter data={mapData} fill="#f88601" line={{ stroke: '#f88601', strokeWidth: 1.5, strokeDasharray: '4 2' }} />
+                                            </ScatterChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                ) : !mapsLoaded ? (
+                                    <div style={centeredStyle}><Spin tip="Loading Google Maps..." /></div>
+                                ) : !GOOGLE_MAPS_API_KEY ? (
+                                    <div style={centeredStyle}>
+                                        <Empty description="VITE_GOOGLE_MAPS_API_KEY is not set" />
+                                    </div>
+                                ) : (
+                                    <GoogleMap
+                                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                                        center={{ lat: mapData[0]?.y ?? 0, lng: mapData[0]?.x ?? 0 }}
+                                        zoom={14}
+                                        options={{
+                                            mapTypeId: 'roadmap',
+                                            disableDefaultUI: false,
+                                            styles: darkMapStyles,
+                                        }}
+                                    >
+                                        {/* Device path polyline */}
+                                        <Polyline
+                                            path={mapData.map(p => ({ lat: p.y, lng: p.x }))}
+                                            options={{
+                                                strokeColor: '#f88601',
+                                                strokeOpacity: 0.9,
+                                                strokeWeight: 3,
+                                                geodesic: true,
+                                            }}
+                                        />
+                                        {/* Individual point markers */}
+                                        {gnssData.map((point: any, idx: number) => (
+                                            <Marker
+                                                key={point.id ?? idx}
+                                                position={{ lat: parseFloat(point.lat), lng: parseFloat(point.lng) }}
+                                                icon={{
+                                                    path: window.google?.maps?.SymbolPath?.CIRCLE,
+                                                    scale: idx === 0 ? 8 : 5,
+                                                    fillColor: idx === 0 ? '#f88601' : '#fff',
+                                                    fillOpacity: 1,
+                                                    strokeColor: '#f88601',
+                                                    strokeWeight: 2,
+                                                }}
+                                                onClick={() => setActiveMarker(idx)}
+                                            >
+                                                {activeMarker === idx && (
+                                                    <InfoWindow onCloseClick={() => setActiveMarker(null)}>
+                                                        <div style={{ color: '#000', fontSize: 12, lineHeight: 1.6 }}>
+                                                            <strong>{dayjs(point.ts).format('HH:mm:ss')}</strong><br />
+                                                            Lat: {parseFloat(point.lat).toFixed(5)}<br />
+                                                            Lng: {parseFloat(point.lng).toFixed(5)}<br />
+                                                            {point.spd != null && <>Speed: {parseFloat(point.spd).toFixed(1)} km/h</>}
+                                                        </div>
+                                                    </InfoWindow>
+                                                )}
+                                            </Marker>
+                                        ))}
+                                    </GoogleMap>
                                 )}
                             </div>
                         </Col>
