@@ -165,7 +165,7 @@ export const ShowcasePage: React.FC = () => {
 
 
     return (
-        <div style={{ padding: "24px", background: "#0a0f1e", minHeight: "100vh" }}>
+        <div style={{ padding: "24px", minHeight: "100vh" }}>
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
 
                 {/* Header */}
@@ -185,7 +185,7 @@ export const ShowcasePage: React.FC = () => {
                             allowClear
                             onChange={setSelectedDeviceId}
                             value={selectedDeviceId}
-                            dropdownStyle={{ background: '#141b2d' }}
+                            dropdownStyle={{ background: '#1d1d1d' }}
                         >
                             {deviceIds.map(id => (
                                 <Option key={id} value={id}>{id}</Option>
@@ -266,7 +266,7 @@ export const ShowcasePage: React.FC = () => {
                     <Col xs={24} lg={12}>
                         <Card
                             title={<span style={{ color: "#fff" }}>Temperature History <Tag color="orange">{tempData.length} readings</Tag></span>}
-                            bordered={false} style={{ background: "#141b2d" }} className="shadow-premium"
+                            bordered={false} className="shadow-premium"
                         >
                             <div style={{ height: 300 }}>
                                 {tempLoading ? (
@@ -284,7 +284,7 @@ export const ShowcasePage: React.FC = () => {
                                             <XAxis dataKey="time" stroke="#718096" fontSize={10} />
                                             <YAxis stroke="#718096" fontSize={10} domain={['auto', 'auto']} />
                                             <ChartTooltip
-                                                contentStyle={{ background: "#1a202c", border: "1px solid #2d3748" }}
+                                                contentStyle={{ background: "#1d1d1d", border: "1px solid rgba(255,255,255,0.1)" }}
                                                 labelFormatter={(_: any, items: readonly any[]) => items[0]?.payload?.fullTime ?? ""}
                                                 itemStyle={{ color: "#f88601" }}
                                             />
@@ -300,7 +300,7 @@ export const ShowcasePage: React.FC = () => {
                     <Col xs={24} lg={12}>
                         <Card
                             title={<span style={{ color: "#fff" }}>RSRP Signal <Tag color="blue">{rsrpData.length} readings</Tag></span>}
-                            bordered={false} style={{ background: "#141b2d" }} className="shadow-premium"
+                            bordered={false} className="shadow-premium"
                         >
                             <div style={{ height: 300 }}>
                                 {rsrpLoading ? (
@@ -312,7 +312,7 @@ export const ShowcasePage: React.FC = () => {
                                             <XAxis dataKey="time" stroke="#718096" fontSize={10} />
                                             <YAxis stroke="#718096" fontSize={10} reversed domain={[0, 130]} />
                                             <ChartTooltip
-                                                contentStyle={{ background: "#1a202c", border: "1px solid #2d3748" }}
+                                                contentStyle={{ background: "#1d1d1d", border: "1px solid rgba(255,255,255,0.1)" }}
                                                 formatter={(_: any, __: any, props: any) => [`${props.payload.raw} dBm`, "RSRP"]}
                                             />
                                             <Bar dataKey="signal" name="RSRP" fill="#1890ff" radius={[4, 4, 0, 0]} />
@@ -329,11 +329,11 @@ export const ShowcasePage: React.FC = () => {
                 {/* GNSS */}
                 <Card
                     title={<span style={{ color: "#fff" }}><GlobalOutlined /> GNSS Trajectory <Tag color="orange">{gnssData.length} points</Tag></span>}
-                    bordered={false} style={{ background: "#141b2d" }} className="shadow-premium"
+                    bordered={false} className="shadow-premium"
                 >
                     <Row gutter={24}>
                         <Col xs={24} lg={16}>
-                            <div style={{ height: 380, background: '#0a0f1e', borderRadius: 8, padding: 8 }}>
+                            <div style={{ height: 380, background: '#141414', borderRadius: 8, padding: 8 }}>
                                 {gnssLoading ? (
                                     <div style={centeredStyle}><Spin /></div>
                                 ) : mapData.length > 0 ? (
@@ -343,7 +343,7 @@ export const ShowcasePage: React.FC = () => {
                                             <XAxis type="number" dataKey="x" name="Lng" domain={['auto', 'auto']} hide />
                                             <YAxis type="number" dataKey="y" name="Lat" domain={['auto', 'auto']} hide />
                                             <ZAxis type="category" dataKey="name" name="Time" />
-                                            <ChartTooltip contentStyle={{ background: "#1a202c", border: "1px solid #2d3748" }} />
+                                            <ChartTooltip contentStyle={{ background: "#1d1d1d", border: "1px solid rgba(255,255,255,0.1)" }} />
                                             <Scatter data={mapData} fill="#f88601" line={{ stroke: '#f88601', strokeWidth: 1.5, strokeDasharray: '4 2' }} />
                                         </ScatterChart>
                                     </ResponsiveContainer>
@@ -373,7 +373,7 @@ export const ShowcasePage: React.FC = () => {
                 </Card>
 
                 {/* Logs, Raw, Status Tabs */}
-                <Card bordered={false} style={{ background: "#141b2d" }} className="shadow-premium">
+                <Card bordered={false} className="shadow-premium">
                     <Tabs defaultActiveKey="1" items={[
                         {
                             key: '1',
@@ -439,10 +439,9 @@ export const ShowcasePage: React.FC = () => {
             </Space>
 
             <style>{`
-                .shadow-premium { box-shadow: 0 4px 24px rgba(0,0,0,0.5) !important; }
+                .shadow-premium { box-shadow: 0 4px 24px rgba(0,0,0,0.3) !important; }
                 .dashboard-card {
-                    background: #141b2d !important;
-                    border: 1px solid rgba(255,255,255,0.05) !important;
+                    border: 1px solid rgba(255,255,255,0.06) !important;
                     transition: all 0.2s;
                 }
                 .dashboard-card:hover {
@@ -451,12 +450,11 @@ export const ShowcasePage: React.FC = () => {
                 }
                 .industrial-table .ant-table { background: transparent !important; }
                 .industrial-table .ant-table-thead > tr > th {
-                    background: #0f172a !important;
                     color: rgba(255,255,255,0.45) !important;
-                    border-bottom: 1px solid #1e293b !important;
+                    border-bottom: 1px solid rgba(255,255,255,0.08) !important;
                     font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
                 }
-                .industrial-table .ant-table-tbody > tr > td { border-bottom: 1px solid #1e293b !important; font-size: 12px; }
+                .industrial-table .ant-table-tbody > tr > td { border-bottom: 1px solid rgba(255,255,255,0.06) !important; font-size: 12px; }
                 .industrial-table .ant-table-tbody > tr:hover > td { background: rgba(248,134,1,0.06) !important; }
                 .ant-tabs-tab { color: rgba(255,255,255,0.4) !important; }
                 .ant-tabs-tab-active .ant-tabs-tab-btn { color: #f88601 !important; font-weight: 600 !important; }
