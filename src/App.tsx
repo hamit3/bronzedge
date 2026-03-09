@@ -32,6 +32,7 @@ import { ReportList } from "./pages/reports";
 import { SettingsPage } from "./pages/settings";
 import { Header } from "./components/header";
 import { ErrorPage } from "./pages/error";
+import { ShowcasePage } from "./pages/showcase";
 
 function App() {
   return (
@@ -92,6 +93,14 @@ function App() {
                 authProvider={authProvider}
                 routerProvider={routerProvider}
                 resources={[
+                  {
+                    name: "showcase",
+                    list: "/showcase",
+                    meta: {
+                      label: "Showcase",
+                      icon: <BarChartOutlined />,
+                    },
+                  },
                   {
                     name: "devices",
                     list: "/devices",
@@ -205,7 +214,8 @@ function App() {
                       </Authenticated>
                     }
                   >
-                    <Route index element={<CatchAllNavigate to="/devices" />} />
+                    <Route index element={<CatchAllNavigate to="/showcase" />} />
+                    <Route path="/showcase" element={<ShowcasePage />} />
                     <Route path="/devices" element={<DeviceList />} />
                     <Route path="/monitoring" element={<MonitoringPage />} />
                     <Route path="/alerts" element={<AlertList />} />
