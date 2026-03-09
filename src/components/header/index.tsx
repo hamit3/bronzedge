@@ -1,25 +1,35 @@
 import React, { useState } from "react";
-import { useGetIdentity, useLogout, useMenu } from "@refinedev/core";
-import { Layout, Avatar, Typography, Dropdown, MenuProps, theme, AutoComplete, Input, Space, Badge, Tooltip } from "antd";
+import { useGetIdentity, useList, useLogout, useMenu } from "@refinedev/core";
+import {
+  Layout,
+  Avatar,
+  Typography,
+  Dropdown,
+  MenuProps,
+  theme,
+  AutoComplete,
+  Input,
+  Space,
+  Badge,
+  Tooltip,
+  Spin,
+} from "antd";
 import {
   LogoutOutlined,
   UserOutlined,
   SearchOutlined,
   BellOutlined,
   SyncOutlined,
-  ShopOutlined,
-  DownOutlined
+  BankOutlined,
+  DownOutlined,
+  PlusOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router";
+import { useOrganization } from "../../contexts/organization";
 
 const { Text } = Typography;
 const { useToken } = theme;
-
-const MOCK_TENANTS = [
-  { id: "1", name: "Factory A", icon: <ShopOutlined /> },
-  { id: "2", name: "Factory B", icon: <ShopOutlined /> },
-  { id: "3", name: "Garden X", icon: <ShopOutlined /> },
-];
 
 export const Header: React.FC = () => {
   const { token } = useToken();
@@ -27,32 +37,114 @@ export const Header: React.FC = () => {
   const { mutate: logout } = useLogout();
   const { menuItems } = useMenu();
   const navigate = useNavigate();
+  const { activeOrgId, setActiveOrgId } = useOrganization();
+
   const [options, setOptions] = useState<{ label: string; value: string }[]>([]);
-  const [selectedTenant, setSelectedTenant] = useState(MOCK_TENANTS[0]);
 
-  const tenantMenuItems: MenuProps['items'] = MOCK_TENANTS.map((tenant) => ({
-    key: tenant.id,
-    label: tenant.name,
-    icon: tenant.icon,
-    onClick: () => setSelectedTenant(tenant),
-  }));
+  // Fetch all orgs the user belongs to (for switcher)
+  const memberListResult = useList({
+    resource: "organization_members",
+    filters: user?.id
+      ? [{ field: "user_id", operator: "eq", value: user.id }]
+      : [],
+    pagination: { pageSize: 50 },
+    queryOptions: { enabled: !!user?.id },
+  });
+  const memberships = (memberListResult.query.data?.data ?? []) as any[];
+  const orgIds = memberships.map((m) => m.organization_id);
 
+  const orgsListResult = useList({
+    resource: "organizations",
+    filters:
+      orgIds.length > 0
+        ? [{ field: "id", operator: "in", value: orgIds }]
+        : [{ field: "id", operator: "eq", value: "00000000-0000-0000-0000-000000000000" }],
+    pagination: { pageSize: 50 },
+    queryOptions: { enabled: orgIds.length > 0 },
+  });
+  const orgsLoading = orgsListResult.query.isLoading;
+  const orgs = (orgsListResult.query.data?.data ?? []) as any[];
+
+  const activeOrg = orgs.find((o) => o.id === activeOrgId);
+
+  // Build org switcher dropdown items
+  const orgMenuItems: MenuProps["items"] = [
+    // Header label
+    {
+      key: "label",
+      label: (
+        <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+          Switch Organization
+        </Text>
+      ),
+      disabled: true,
+    },
+    { type: "divider" },
+    // Org list
+    ...orgs.map((org) => ({
+      key: org.id,
+      label: (
+        <Space>
+          <div
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 5,
+              background:
+                org.id === activeOrgId
+                  ? "rgba(248,134,1,0.2)"
+                  : "rgba(255,255,255,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: org.id === activeOrgId ? "#f88601" : "rgba(255,255,255,0.5)",
+              fontSize: 10,
+              fontWeight: 700,
+            }}
+          >
+            {(org.name as string)?.[0]?.toUpperCase()}
+          </div>
+          <Text style={{ color: org.id === activeOrgId ? "#f88601" : "rgba(255,255,255,0.85)" }}>
+            {org.name}
+          </Text>
+          {org.id === activeOrgId && (
+            <CheckOutlined style={{ color: "#f88601", fontSize: 11 }} />
+          )}
+        </Space>
+      ),
+      onClick: () => {
+        setActiveOrgId(org.id);
+      },
+    })),
+    { type: "divider" },
+    {
+      key: "manage",
+      label: (
+        <Space>
+          <PlusOutlined style={{ fontSize: 11 }} />
+          <span>Manage Organizations</span>
+        </Space>
+      ),
+      onClick: () => navigate("/account"),
+    },
+  ];
+
+  // Search handler
   const handleSearch = (value: string) => {
     if (!value) {
       setOptions([]);
       return;
     }
-
     const filtered = menuItems
-      .filter((item) =>
-        item.label?.toString().toLowerCase().includes(value.toLowerCase()) ||
-        item.name.toLowerCase().includes(value.toLowerCase())
+      .filter(
+        (item) =>
+          item.label?.toString().toLowerCase().includes(value.toLowerCase()) ||
+          item.name.toLowerCase().includes(value.toLowerCase())
       )
       .map((item) => ({
         label: item.label?.toString() || item.name,
         value: item.route || `/${item.name}`,
       }));
-
     setOptions(filtered);
   };
 
@@ -60,18 +152,29 @@ export const Header: React.FC = () => {
     navigate(value);
   };
 
-  const menuItemsList: MenuProps['items'] = [
+  // User profile dropdown
+  const userMenuItems: MenuProps["items"] = [
     {
       key: "user-info",
       label: (
         <div style={{ padding: "4px 12px" }}>
-          <Text strong style={{ display: "block" }}>{user?.email}</Text>
-          <Text type="secondary" style={{ fontSize: "12px" }}>Admin</Text>
+          <Text strong style={{ display: "block" }}>
+            {user?.email}
+          </Text>
+          <Text type="secondary" style={{ fontSize: "12px" }}>
+            {memberships.find((m) => m.organization_id === activeOrgId)?.role ?? "—"}
+          </Text>
         </div>
       ),
       disabled: true,
     },
-    { type: 'divider' },
+    { type: "divider" },
+    {
+      key: "account",
+      label: "Account",
+      icon: <UserOutlined />,
+      onClick: () => navigate("/account"),
+    },
     {
       key: "logout",
       label: "Logout",
@@ -95,28 +198,61 @@ export const Header: React.FC = () => {
         borderBottom: `1px solid ${token.colorBorderSecondary}`,
       }}
     >
-      {/* Left Side: Tenant Switcher */}
+      {/* Left Side: Organization Switcher */}
       <Space size={16}>
-        <Dropdown menu={{ items: tenantMenuItems }} trigger={["click"]}>
-          <div style={{
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "4px 8px",
-            backgroundColor: token.colorFillTertiary,
-            borderRadius: "6px",
-            border: `1px solid ${token.colorBorderSecondary}`
-          }}>
-            <Avatar
-              size={20}
-              icon={selectedTenant.icon}
-              style={{ backgroundColor: token.colorPrimary, fontSize: '12px' }}
-            />
-            <Text strong style={{ fontSize: "13px", color: token.colorTextHeading, maxWidth: "100px" }} ellipsis>
-              {selectedTenant.name}
-            </Text>
-            <DownOutlined style={{ fontSize: "8px", color: token.colorTextTertiary }} />
+        <Dropdown menu={{ items: orgMenuItems }} trigger={["click"]}>
+          <div
+            style={{
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "4px 10px",
+              backgroundColor: token.colorFillTertiary,
+              borderRadius: "6px",
+              border: `1px solid ${token.colorBorderSecondary}`,
+              minWidth: 140,
+            }}
+          >
+            {orgsLoading ? (
+              <Spin size="small" />
+            ) : (
+              <>
+                <div
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 5,
+                    background: "rgba(248,134,1,0.2)",
+                    border: "1px solid rgba(248,134,1,0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#f88601",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}
+                >
+                  <BankOutlined />
+                </div>
+                <Text
+                  strong
+                  ellipsis
+                  style={{
+                    fontSize: "13px",
+                    color: token.colorTextHeading,
+                    maxWidth: "110px",
+                    flex: 1,
+                  }}
+                >
+                  {activeOrg?.name ?? (orgs.length === 0 ? "No Organization" : "Select Org")}
+                </Text>
+                <DownOutlined
+                  style={{ fontSize: "8px", color: token.colorTextTertiary }}
+                />
+              </>
+            )}
           </div>
         </Dropdown>
       </Space>
@@ -132,7 +268,11 @@ export const Header: React.FC = () => {
             style={{ width: "100%" }}
           >
             <Input
-              prefix={<SearchOutlined style={{ color: token.colorTextTertiary, fontSize: '13px' }} />}
+              prefix={
+                <SearchOutlined
+                  style={{ color: token.colorTextTertiary, fontSize: "13px" }}
+                />
+              }
               placeholder="Search..."
               variant="filled"
               size="small"
@@ -145,37 +285,49 @@ export const Header: React.FC = () => {
           </AutoComplete>
         </div>
 
-        {/* Sync Time */}
-        <Tooltip title="Last sync: 14:10">
-          <Space size={4} style={{ cursor: 'help' }}>
-            <SyncOutlined style={{ fontSize: "12px", color: token.colorTextTertiary }} />
-            <Text style={{ fontSize: "11px", color: token.colorTextTertiary }}>14:10</Text>
+        {/* Sync indicator */}
+        <Tooltip title="Data sync">
+          <Space size={4} style={{ cursor: "help" }}>
+            <SyncOutlined
+              style={{ fontSize: "12px", color: token.colorTextTertiary }}
+            />
+            <Text style={{ fontSize: "11px", color: token.colorTextTertiary }}>
+              Live
+            </Text>
           </Space>
         </Tooltip>
 
         {/* Notifications */}
         <Badge count={3} size="small" offset={[-2, 4]} color={token.colorPrimary}>
           <Tooltip title="Alerts">
-            <div style={{
-              padding: "4px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center"
-            }}>
-              <BellOutlined style={{ fontSize: "16px", color: token.colorTextSecondary }} />
+            <div
+              style={{
+                padding: "4px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <BellOutlined
+                style={{ fontSize: "16px", color: token.colorTextSecondary }}
+              />
             </div>
           </Tooltip>
         </Badge>
 
         {/* User Profile */}
-        <Dropdown menu={{ items: menuItemsList }} trigger={["click"]} placement="bottomRight">
+        <Dropdown
+          menu={{ items: userMenuItems }}
+          trigger={["click"]}
+          placement="bottomRight"
+        >
           <Avatar
             shape="circle"
             size="default"
             style={{
               backgroundColor: token.colorPrimary,
               cursor: "pointer",
-              border: `1px solid ${token.colorPrimary}4D`
+              border: `1px solid ${token.colorPrimary}4D`,
             }}
             icon={<UserOutlined />}
             src={user?.avatar_url}

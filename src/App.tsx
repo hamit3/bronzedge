@@ -17,6 +17,7 @@ import authProvider from "./providers/auth";
 import { dataProvider } from "./providers/data";
 import { supabaseClient } from "./providers/supabase-client";
 import { LoginPage } from "./pages/login";
+import { OrganizationProvider } from "./contexts/organization";
 
 import {
   DesktopOutlined,
@@ -24,6 +25,7 @@ import {
   AlertOutlined,
   FileTextOutlined,
   SettingOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { DeviceList } from "./pages/devices";
 import { MonitoringPage } from "./pages/monitoring";
@@ -33,6 +35,8 @@ import { SettingsPage } from "./pages/settings";
 import { Header } from "./components/header";
 import { ErrorPage } from "./pages/error";
 import { ShowcasePage } from "./pages/showcase";
+import { AccountPage } from "./pages/account";
+import { UpdatePasswordPage } from "./pages/update-password";
 
 function App() {
   return (
@@ -85,160 +89,173 @@ function App() {
       >
         <RefineKbarProvider>
           <AntdApp>
-            <DevtoolsProvider>
-              <Refine
-                notificationProvider={useNotificationProvider}
-                dataProvider={dataProvider}
-                liveProvider={liveProvider(supabaseClient)}
-                authProvider={authProvider}
-                routerProvider={routerProvider}
-                resources={[
-                  {
-                    name: "showcase",
-                    list: "/showcase",
-                    meta: {
-                      label: "Showcase",
-                      icon: <BarChartOutlined />,
+            <OrganizationProvider>
+              <DevtoolsProvider>
+                <Refine
+                  notificationProvider={useNotificationProvider}
+                  dataProvider={dataProvider}
+                  liveProvider={liveProvider(supabaseClient)}
+                  authProvider={authProvider}
+                  routerProvider={routerProvider}
+                  resources={[
+                    {
+                      name: "showcase",
+                      list: "/showcase",
+                      meta: {
+                        label: "Showcase",
+                        icon: <BarChartOutlined />,
+                      },
                     },
-                  },
-                  {
-                    name: "devices",
-                    list: "/devices",
-                    meta: {
-                      label: "Assets & Devices",
-                      icon: <DesktopOutlined />,
+                    {
+                      name: "devices",
+                      list: "/devices",
+                      meta: {
+                        label: "Assets & Devices",
+                        icon: <DesktopOutlined />,
+                      },
                     },
-                  },
-                  {
-                    name: "monitoring",
-                    list: "/monitoring",
-                    meta: {
-                      label: "Monitoring",
-                      icon: <BarChartOutlined />,
+                    {
+                      name: "monitoring",
+                      list: "/monitoring",
+                      meta: {
+                        label: "Monitoring",
+                        icon: <BarChartOutlined />,
+                      },
                     },
-                  },
-                  {
-                    name: "alerts",
-                    list: "/alerts",
-                    meta: {
-                      label: "Alerts",
-                      icon: <AlertOutlined />,
+                    {
+                      name: "alerts",
+                      list: "/alerts",
+                      meta: {
+                        label: "Alerts",
+                        icon: <AlertOutlined />,
+                      },
                     },
-                  },
-                  {
-                    name: "reports",
-                    list: "/reports",
-                    meta: {
-                      label: "Reports",
-                      icon: <FileTextOutlined />,
+                    {
+                      name: "reports",
+                      list: "/reports",
+                      meta: {
+                        label: "Reports",
+                        icon: <FileTextOutlined />,
+                      },
                     },
-                  },
-                  {
-                    name: "settings",
-                    list: "/settings",
-                    meta: {
-                      label: "Settings",
-                      icon: <SettingOutlined />,
+                    {
+                      name: "settings",
+                      list: "/settings",
+                      meta: {
+                        label: "Settings",
+                        icon: <SettingOutlined />,
+                      },
                     },
-                  },
-                ]}
-                options={{
-                  syncWithLocation: true,
-                  warnWhenUnsavedChanges: true,
-                  projectId: "qAQyh8-824O2c-uPhcpp",
-                }}
-              >
-                <Routes>
-                  <Route
-                    element={
-                      <Authenticated
-                        key="authenticated-inner"
-                        fallback={<CatchAllNavigate to="/login" />}
-                      >
-                        <ThemedLayout
-                          Header={Header}
-                          Title={({ collapsed }) => (
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              padding: '12px 0',
-                              width: '100%',
-                              transition: 'all 0.3s'
-                            }}>
-                              {collapsed ? (
-                                <img src="/logo-icon.png" alt="Icon" style={{ width: '28px', height: 'auto' }} />
-                              ) : (
-                                <img src="/BronzEdge_Logo.png" alt="Logo" style={{ width: '140px', height: 'auto' }} />
-                              )}
-                            </div>
-                          )}
+                    {
+                      name: "account",
+                      list: "/account",
+                      meta: {
+                        label: "Account",
+                        icon: <UserOutlined />,
+                      },
+                    },
+                  ]}
+                  options={{
+                    syncWithLocation: true,
+                    warnWhenUnsavedChanges: true,
+                    projectId: "qAQyh8-824O2c-uPhcpp",
+                  }}
+                >
+                  <Routes>
+                    <Route
+                      element={
+                        <Authenticated
+                          key="authenticated-inner"
+                          fallback={<CatchAllNavigate to="/login" />}
                         >
-                          <Outlet />
-
-                          {/* Floating System Status */}
-                          <div style={{
-                            position: 'fixed',
-                            bottom: '24px',
-                            right: '24px',
-                            zIndex: 1000,
-                            pointerEvents: 'none'
-                          }}>
-                            <Tooltip title="System Health: Operational" placement="left">
+                          <ThemedLayout
+                            Header={Header}
+                            Title={({ collapsed }) => (
                               <div style={{
-                                pointerEvents: 'auto',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '10px',
-                                padding: '6px 14px',
-                                backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                                backdropFilter: 'blur(8px)',
-                                borderRadius: '20px',
-                                border: '1px solid rgba(82, 196, 26, 0.3)',
-                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                                cursor: 'help'
+                                justifyContent: 'center',
+                                padding: '12px 0',
+                                width: '100%',
+                                transition: 'all 0.3s'
                               }}>
-                                <Badge status="processing" color="#52c41a" />
-                                <span style={{
-                                  color: "#52c41a",
-                                  fontSize: "11px",
-                                  fontWeight: 600,
-                                  letterSpacing: '0.5px'
-                                }}>
-                                  HEALTHY
-                                </span>
+                                {collapsed ? (
+                                  <img src="/logo-icon.png" alt="Icon" style={{ width: '28px', height: 'auto' }} />
+                                ) : (
+                                  <img src="/BronzEdge_Logo.png" alt="Logo" style={{ width: '140px', height: 'auto' }} />
+                                )}
                               </div>
-                            </Tooltip>
-                          </div>
-                        </ThemedLayout>
-                      </Authenticated>
-                    }
-                  >
-                    <Route index element={<CatchAllNavigate to="/showcase" />} />
-                    <Route path="/showcase" element={<ShowcasePage />} />
-                    <Route path="/devices" element={<DeviceList />} />
-                    <Route path="/monitoring" element={<MonitoringPage />} />
-                    <Route path="/alerts" element={<AlertList />} />
-                    <Route path="/reports" element={<ReportList />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                  </Route>
-                  <Route
-                    element={
-                      <Authenticated key="authenticated-outer" fallback={<Outlet />}>
-                        <CatchAllNavigate to="/devices" />
-                      </Authenticated>
-                    }
-                  >
-                    <Route path="/login" element={<LoginPage />} />
-                  </Route>
-                  <Route path="*" element={<ErrorPage />} />
-                </Routes>
-                <RefineKbar />
-                <UnsavedChangesNotifier />
-                <DocumentTitleHandler />
-              </Refine>
-              <DevtoolsPanel />
-            </DevtoolsProvider>
+                            )}
+                          >
+                            <Outlet />
+
+                            {/* Floating System Status */}
+                            <div style={{
+                              position: 'fixed',
+                              bottom: '24px',
+                              right: '24px',
+                              zIndex: 1000,
+                              pointerEvents: 'none'
+                            }}>
+                              <Tooltip title="System Health: Operational" placement="left">
+                                <div style={{
+                                  pointerEvents: 'auto',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  padding: '6px 14px',
+                                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                  backdropFilter: 'blur(8px)',
+                                  borderRadius: '20px',
+                                  border: '1px solid rgba(82, 196, 26, 0.3)',
+                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                                  cursor: 'help'
+                                }}>
+                                  <Badge status="processing" color="#52c41a" />
+                                  <span style={{
+                                    color: "#52c41a",
+                                    fontSize: "11px",
+                                    fontWeight: 600,
+                                    letterSpacing: '0.5px'
+                                  }}>
+                                    HEALTHY
+                                  </span>
+                                </div>
+                              </Tooltip>
+                            </div>
+                          </ThemedLayout>
+                        </Authenticated>
+                      }
+                    >
+                      <Route index element={<CatchAllNavigate to="/showcase" />} />
+                      <Route path="/showcase" element={<ShowcasePage />} />
+                      <Route path="/devices" element={<DeviceList />} />
+                      <Route path="/monitoring" element={<MonitoringPage />} />
+                      <Route path="/alerts" element={<AlertList />} />
+                      <Route path="/reports" element={<ReportList />} />
+                      <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="/account" element={<AccountPage />} />
+                    </Route>
+                    <Route
+                      element={
+                        <Authenticated key="authenticated-outer" fallback={<Outlet />}>
+                          <CatchAllNavigate to="/devices" />
+                        </Authenticated>
+                      }
+                    >
+                      <Route path="/login" element={<LoginPage />} />
+                    </Route>
+                    <Route path="*" element={<ErrorPage />} />
+                    {/* Public route — accessible from password reset email link */}
+                    <Route path="/update-password" element={<UpdatePasswordPage />} />
+                  </Routes>
+                  <RefineKbar />
+                  <UnsavedChangesNotifier />
+                  <DocumentTitleHandler />
+                </Refine>
+                <DevtoolsPanel />
+              </DevtoolsProvider>
+            </OrganizationProvider>
           </AntdApp>
         </RefineKbarProvider>
       </ConfigProvider>
