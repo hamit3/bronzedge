@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { useList } from "@refinedev/core";
 import { List } from "@refinedev/antd";
-import { Table, Typography, Tag, Space, Card, Spin, Select, DatePicker } from "antd";
-import { WarningOutlined, InfoCircleOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { Table, Typography, Tag, Space, Card, Spin, Select, DatePicker, Segmented, ConfigProvider, theme } from "antd";
+import { WarningOutlined, InfoCircleOutlined, ExclamationCircleOutlined, FilterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useOrganization } from "../../contexts/organization";
 
@@ -15,9 +15,10 @@ export const AlertsPage: React.FC = () => {
 
     // Filters
     const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
+    const [quickFilter, setQuickFilter] = useState<string>("7d");
     const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>([
-        dayjs().subtract(7, "day"),
-        dayjs()
+        dayjs().subtract(7, "day").startOf("day"),
+        dayjs().endOf("day")
     ]);
 
     // Fetch Devices for current Org
@@ -64,6 +65,31 @@ export const AlertsPage: React.FC = () => {
             return { color: "warning", icon: <WarningOutlined />, label: "WARNING" };
         }
         return { color: "processing", icon: <InfoCircleOutlined />, label: "INFO" };
+    };
+
+    const handleDateChange = (dates: any) => {
+        if (dates && dates[0] && dates[1]) {
+            setDateRange([dates[0], dates[1]]);
+            setQuickFilter("custom");
+        }
+    };
+
+    const handleQuickFilter = (value: string) => {
+        setQuickFilter(value);
+        if (value === "all") {
+            setDateRange([dayjs().subtract(10, "year").startOf("day"), dayjs().endOf("day")]);
+            return;
+        }
+
+        const end = dayjs().endOf("day");
+        let start = dayjs().subtract(7, "day").startOf("day");
+
+        if (value === "24h") start = dayjs().subtract(24, "hour");
+        else if (value === "7d") start = dayjs().subtract(7, "day").startOf("day");
+        else if (value === "30d") start = dayjs().subtract(30, "day").startOf("day");
+        else if (value === "90d") start = dayjs().subtract(90, "day").startOf("day");
+
+        setDateRange([start, end]);
     };
 
     const columns = [
@@ -136,43 +162,89 @@ export const AlertsPage: React.FC = () => {
 
     return (
         <List title={<Title level={3} style={{ margin: 0 }}>System Alerts</Title>}>
-            <Card
-                style={{
-                    marginBottom: 24,
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    background: "rgba(20,20,20,0.6)",
-                    backdropFilter: "blur(10px)",
+            <ConfigProvider
+                theme={{
+                    algorithm: theme.darkAlgorithm,
+                    token: {
+                        colorPrimary: '#f88601',
+                        borderRadius: 8,
+                    },
+                    components: {
+                        Segmented: {
+                            itemSelectedBg: '#f88601',
+                            itemSelectedColor: '#fff',
+                            trackBg: 'rgba(255,255,255,0.04)',
+                            itemActiveBg: 'rgba(248,134,1,0.2)',
+                        },
+                        Select: {
+                            optionSelectedBg: 'rgba(248,134,1,0.15)',
+                        }
+                    }
                 }}
             >
-                <Space wrap size="large">
-                    <div>
-                        <Text type="secondary" style={{ display: "block", marginBottom: 6, fontSize: 12 }}>Filter by Device</Text>
-                        <Select
-                            placeholder="All Devices"
-                            allowClear
-                            style={{ width: 250 }}
-                            value={selectedDevice}
-                            onChange={setSelectedDevice}
-                            loading={devicesQuery.isLoading}
-                        >
-                            {devices.map(d => (
-                                <Option key={d.device_id} value={d.device_id}>
-                                    {d.name || d.device_id}
-                                </Option>
-                            ))}
-                        </Select>
+                <div
+                    style={{
+                        background: "rgba(20, 20, 20, 0.9)",
+                        backdropFilter: "blur(16px)",
+                        padding: "16px 20px",
+                        borderRadius: "14px",
+                        border: "1px solid rgba(248, 134, 1, 0.2)",
+                        boxShadow: "0 12px 40px rgba(0, 0, 0, 0.6)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "16px",
+                        flexWrap: "wrap",
+                        marginBottom: 24,
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '4px' }}>
+                        <FilterOutlined style={{ color: '#f88601', fontSize: '18px' }} />
+                        <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Alert Filters</span>
                     </div>
-                    <div>
-                        <Text type="secondary" style={{ display: "block", marginBottom: 6, fontSize: 12 }}>Date Range</Text>
-                        <RangePicker
-                            showTime
-                            value={dateRange}
-                            onChange={(dates: any) => setDateRange(dates)}
-                            style={{ width: 320 }}
-                        />
-                    </div>
-                </Space>
-            </Card>
+
+                    <Select
+                        placeholder="All Devices"
+                        allowClear
+                        style={{ width: 250 }}
+                        value={selectedDevice}
+                        onChange={setSelectedDevice}
+                        loading={devicesQuery.isLoading}
+                        dropdownStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                        {devices.map(d => (
+                            <Option key={d.device_id} value={d.device_id}>
+                                {d.name || d.device_id}
+                            </Option>
+                        ))}
+                    </Select>
+
+                    <Segmented
+                        options={[
+                            { label: '24h', value: '24h' },
+                            { label: '7D', value: '7d' },
+                            { label: '30D', value: '30d' },
+                            { label: '90D', value: '90d' },
+                            { label: 'All', value: 'all' },
+                            { label: 'Cust', value: 'custom', disabled: true },
+                        ]}
+                        value={quickFilter}
+                        onChange={(value: string | number) => handleQuickFilter(value as string)}
+                        className="premium-segmented"
+                    />
+
+                    <RangePicker
+                        showTime
+                        value={dateRange}
+                        onChange={handleDateChange}
+                        style={{
+                            width: 320,
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                        disabled={quickFilter === "all"}
+                    />
+                </div>
+            </ConfigProvider>
 
             <Card
                 styles={{ body: { padding: 0 } }}
@@ -200,6 +272,17 @@ export const AlertsPage: React.FC = () => {
             </Card>
 
             <style>{`
+                .premium-segmented .ant-segmented-item-label {
+                    font-weight: 700;
+                    font-size: 11px;
+                    padding: 0 16px;
+                }
+                .premium-segmented.ant-segmented {
+                    padding: 3px;
+                }
+                .ant-segmented-item-selected {
+                    box-shadow: 0 2px 8px rgba(248, 134, 1, 0.4);
+                }
                 .premium-dark-table .ant-table {
                     background: transparent !important;
                 }

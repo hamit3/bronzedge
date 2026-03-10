@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { useList } from "@refinedev/core";
 import { List } from "@refinedev/antd";
-import { Tabs, Row, Col, Select, DatePicker, Spin, Typography, Space, Empty, Segmented, Card } from "antd";
+import { Tabs, Row, Col, Select, DatePicker, Spin, Typography, Space, Empty, Segmented, Card, ConfigProvider, theme } from "antd";
+import { FilterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { ActivityTab } from "./ActivityTab";
 import { PlaybackTab } from "./PlaybackTab";
@@ -104,49 +105,88 @@ export const ReportList: React.FC = () => {
 
     return (
         <List title={<Title level={3} style={{ margin: 0 }}>Equipment Reports</Title>}>
-            <div style={{ padding: "0 0 24px 0" }}>
-                <Row gutter={[16, 16]} align="middle">
-                    <Col>
-                        <Select
-                            placeholder="Select device"
-                            style={{ width: 250 }}
-                            onChange={handleDeviceChange}
-                            loading={isLoadingDevices}
-                            value={selectedDevice?.id}
-                        >
-                            {devices.map((d: any) => (
-                                <Option key={d.id} value={d.id}>
-                                    {d.name || d.device_id}
-                                </Option>
-                            ))}
-                        </Select>
-                    </Col>
-                    <Col>
-                        <Space>
-                            <Segmented
-                                options={[
-                                    { label: '24h', value: '24h' },
-                                    { label: '7D', value: '7d' },
-                                    { label: '30D', value: '30d' },
-                                    { label: '90D', value: '90d' },
-                                    { label: 'All', value: 'all' },
-                                    { label: 'Cust', value: 'custom', disabled: true },
-                                ]}
-                                value={quickFilter}
-                                onChange={(value: string | number) => handleQuickFilter(value as string)}
-                            />
-                            <RangePicker
-                                onChange={handleDateChange}
-                                value={dateRange}
-                                showTime
-                                format="YYYY-MM-DD HH:mm"
-                                style={{ width: 320 }}
-                                disabled={quickFilter === "all"}
-                            />
-                        </Space>
-                    </Col>
-                </Row>
-            </div>
+            <ConfigProvider
+                theme={{
+                    algorithm: theme.darkAlgorithm,
+                    token: {
+                        colorPrimary: '#f88601',
+                        borderRadius: 8,
+                    },
+                    components: {
+                        Segmented: {
+                            itemSelectedBg: '#f88601',
+                            itemSelectedColor: '#fff',
+                            trackBg: 'rgba(255,255,255,0.04)',
+                            itemActiveBg: 'rgba(248,134,1,0.2)',
+                        },
+                        Select: {
+                            optionSelectedBg: 'rgba(248,134,1,0.15)',
+                        }
+                    }
+                }}
+            >
+                <div
+                    style={{
+                        background: "rgba(20, 20, 20, 0.9)",
+                        backdropFilter: "blur(16px)",
+                        padding: "16px 20px",
+                        borderRadius: "14px",
+                        border: "1px solid rgba(248, 134, 1, 0.2)",
+                        boxShadow: "0 12px 40px rgba(0, 0, 0, 0.6)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "16px",
+                        flexWrap: "wrap",
+                        marginBottom: 24,
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '4px' }}>
+                        <FilterOutlined style={{ color: '#f88601', fontSize: '18px' }} />
+                        <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Report Filters</span>
+                    </div>
+
+                    <Select
+                        placeholder="Select device"
+                        style={{ width: 250 }}
+                        onChange={handleDeviceChange}
+                        loading={isLoadingDevices}
+                        value={selectedDevice?.id}
+                        dropdownStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                        {devices.map((d: any) => (
+                            <Option key={d.id} value={d.id}>
+                                {d.name || d.device_id}
+                            </Option>
+                        ))}
+                    </Select>
+
+                    <Segmented
+                        options={[
+                            { label: '24h', value: '24h' },
+                            { label: '7D', value: '7d' },
+                            { label: '30D', value: '30d' },
+                            { label: '90D', value: '90d' },
+                            { label: 'All', value: 'all' },
+                            { label: 'Cust', value: 'custom', disabled: true },
+                        ]}
+                        value={quickFilter}
+                        onChange={(value: string | number) => handleQuickFilter(value as string)}
+                        className="premium-segmented"
+                    />
+                    <RangePicker
+                        onChange={handleDateChange}
+                        value={dateRange}
+                        showTime
+                        format="YYYY-MM-DD HH:mm"
+                        style={{
+                            width: 320,
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                        disabled={quickFilter === "all"}
+                    />
+                </div>
+            </ConfigProvider>
 
             {selectedDevice && (
                 <div style={{ marginBottom: 16 }}>
@@ -187,6 +227,17 @@ export const ReportList: React.FC = () => {
                 </>
             )}
             <style>{`
+        .premium-segmented .ant-segmented-item-label {
+            font-weight: 700;
+            font-size: 11px;
+            padding: 0 16px;
+        }
+        .premium-segmented.ant-segmented {
+            padding: 3px;
+        }
+        .ant-segmented-item-selected {
+            box-shadow: 0 2px 8px rgba(248, 134, 1, 0.4);
+        }
         .kpi-card {
             border: 1px solid rgba(255,255,255,0.06) !important;
             transition: all 0.2s;
