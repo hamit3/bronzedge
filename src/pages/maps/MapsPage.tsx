@@ -190,12 +190,10 @@ export const MapsPage: React.FC = () => {
         <div style={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", background: "#0b0e14", overflow: "hidden" }}>
 
             <div style={{
-                padding: "12px 20px",
-                background: "#141414",
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                padding: "16px 20px",
+                background: "#0b0e14",
                 zIndex: 10,
-                display: "flex",
-                justifyContent: "center"
+                display: "block",
             }}>
                 <MapFilters
                     searchText={searchText}
