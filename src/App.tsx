@@ -63,6 +63,9 @@ function App() {
             borderRadius: 6,
             fontSize: 13,
             colorTextSecondary: "rgba(255, 255, 255, 0.65)",
+            colorBgLayout: "#1a1a1a",
+            colorBgContainer: "#242424",
+            colorBgElevated: "#2d2d2d",
           },
           components: {
             Typography: {
