@@ -23,12 +23,14 @@ import {
   BarChartOutlined,
   FileTextOutlined,
   UserOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
 
 import { ReportList } from "./pages/reports";
 import { Header } from "./components/header";
 import { ErrorPage } from "./pages/error";
 import { ShowcasePage } from "./pages/showcase";
+import { MapsPage } from "./pages/maps/MapsPage";
 import { AccountPage } from "./pages/account";
 import { UpdatePasswordPage } from "./pages/update-password";
 
@@ -98,6 +100,14 @@ function App() {
                       meta: {
                         label: "Monitoring",
                         icon: <BarChartOutlined />,
+                      },
+                    },
+                    {
+                      name: "maps",
+                      list: "/maps",
+                      meta: {
+                        label: "Maps",
+                        icon: <EnvironmentOutlined />,
                       },
                     },
                     {
@@ -219,6 +229,7 @@ function App() {
                         element={<CatchAllNavigate to="/monitoring" />}
                       />
                       <Route path="/monitoring" element={<ShowcasePage />} />
+                      <Route path="/maps" element={<MapsPage />} />
                       <Route path="/reports" element={<ReportList />} />
                       <Route path="/account" element={<AccountPage />} />
                     </Route>
