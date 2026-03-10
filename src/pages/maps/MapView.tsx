@@ -19,23 +19,22 @@ const MAP_OPTIONS: google.maps.MapOptions = {
     streetViewControl: true,
     rotateControl: false,
     fullscreenControl: true,
-    backgroundColor: "#000000", // Critical: prevents white flash while tiles load
+    backgroundColor: "#071527ff", // Critical: prevents white flash while tiles load
     styles: [
-        { elementType: "geometry", stylers: [{ color: "#000000" }] },
-        { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
-        { elementType: "labels.text.stroke", stylers: [{ color: "#000000" }] },
-        { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#374151" }] },
-        { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#4b5563" }] },
+        { elementType: "geometry", stylers: [{ color: "#0d1117" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#8b949e" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#0d1117" }] },
+        { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#30363d" }] },
+        { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#c9d1d9" }] },
         { featureType: "poi", stylers: [{ visibility: "off" }] },
-        { featureType: "road", elementType: "geometry", stylers: [{ color: "#1f2937" }] },
-        { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
-        { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#374151" }] },
-        { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2937" }] },
-        { featureType: "road.highway.controlled_access", elementType: "geometry", stylers: [{ color: "#4b5563" }] },
-        { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#6b7280" }] },
+        { featureType: "road", elementType: "geometry", stylers: [{ color: "#161b22" }] },
+        { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#8b949e" }] },
+        { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#21262d" }] },
+        { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#30363d" }] },
+        { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#8b949e" }] },
         { featureType: "transit", stylers: [{ visibility: "off" }] },
-        { featureType: "water", elementType: "geometry", stylers: [{ color: "#080808" }] },
-        { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#374151" }] },
+        { featureType: "water", elementType: "geometry", stylers: [{ color: "#050a14" }] },
+        { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#30363d" }] },
     ],
 };
 
@@ -79,9 +78,9 @@ export const MapView: React.FC<MapViewProps> = ({
         setMap(null);
     }, []);
 
-    const safeCenter = React.useMemo(() => 
+    const safeCenter = React.useMemo(() =>
         center && !isNaN(center.lat) && !isNaN(center.lng) ? center : { lat: 39.9, lng: 32.8 }
-    , [center]);
+        , [center]);
 
     return (
         <div style={{ width: "100%", height: "100%", backgroundColor: "transparent", position: "relative" }}>
@@ -93,13 +92,13 @@ export const MapView: React.FC<MapViewProps> = ({
             {!map && <div style={{ position: "absolute", inset: 0, zIndex: 10 }}>
                 <MapLoadingSkeleton />
             </div>}
-            
+
             {isLoaded && (
-                <div style={{ 
-                    width: "100%", 
-                    height: "100%", 
-                    opacity: map ? 1 : 0, 
-                    transition: "opacity 0.5s ease-in-out" 
+                <div style={{
+                    width: "100%",
+                    height: "100%",
+                    opacity: map ? 1 : 0,
+                    transition: "opacity 0.5s ease-in-out"
                 }}>
                     <GoogleMap
                         mapContainerStyle={containerStyle}

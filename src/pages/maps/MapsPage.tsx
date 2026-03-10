@@ -21,8 +21,8 @@ export const MapsPage: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
     const [lastSeenFilter, setLastSeenFilter] = useState<string>("any");
     const [timeRange, setTimeRange] = useState<[Dayjs, Dayjs] | null>(null);
-    const [mapCenter, setMapCenter] = useState({ lat: 39.9, lng: 32.8 }); // Turkey default
-    const [mapZoom, setMapZoom] = useState(6);
+    const [mapCenter, setMapCenter] = useState({ lat: 20, lng: 0 }); // World center
+    const [mapZoom, setMapZoom] = useState(2); // World zoom
 
     const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
@@ -137,26 +137,8 @@ export const MapsPage: React.FC = () => {
         });
     }, [allDevices, searchText, statusFilter, lastSeenFilter]);
 
-    // Auto-center map when filters change and results are narrow
-    useEffect(() => {
-        if (filteredDevices.length > 0 && filteredDevices.length <= 5 && searchText.trim() !== "") {
-            // Find first device with a location
-            const deviceWithLoc = filteredDevices.find(d => deviceLocations[d.id]);
-            if (deviceWithLoc) {
-                const loc = deviceLocations[deviceWithLoc.id];
-                if (loc) {
-                    setMapCenter({ lat: loc.lat, lng: loc.lng });
-                    setMapZoom(12);
-                }
-            }
-        } else if (!selectedDevice && searchText.trim() === "") {
-            // Re-center to first available device if search cleared
-            const firstLoc = Object.values(deviceLocations).find(l => !!l);
-            if (firstLoc) {
-                setMapCenter({ lat: firstLoc.lat, lng: firstLoc.lng });
-            }
-        }
-    }, [filteredDevices, deviceLocations, searchText, selectedDevice]);
+    // Auto-centering disabled as per user request to start with a world view.
+    // Users will manually zoom/pan to specific devices.
 
     const recentMessagesQuery = useList({
         resource: "device_messages",
