@@ -208,12 +208,25 @@ export const MapsPage: React.FC = () => {
             </div>
 
             <div style={{ flex: 1, position: "relative" }}>
-                {devicesLoading && allDevices.length === 0 ? (
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                        <Spin size="large" />
-                        <span style={{ color: 'rgba(255,255,255,0.45)' }}>Loading devices...</span>
+                {devicesLoading && allDevices.length === 0 && (
+                    <div style={{ 
+                        position: 'absolute', 
+                        top: 20, 
+                        right: 20, 
+                        zIndex: 5, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 10,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        padding: "8px 16px",
+                        borderRadius: "20px",
+                        backdropFilter: "blur(4px)",
+                        border: "1px solid rgba(255,255,255,0.1)"
+                    }}>
+                        <Spin size="small" />
+                        <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px', fontWeight: 500 }}>UPDATING FLEET...</span>
                     </div>
-                ) : null}
+                )}
 
                 <MapView
                     devices={filteredDevices}
