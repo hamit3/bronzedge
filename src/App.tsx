@@ -105,6 +105,42 @@ function App() {
         }}
       >
         <RefineKbarProvider>
+          <style>{`
+            html, body, #root {
+              height: 100%;
+              margin: 0;
+              overflow: hidden;
+            }
+            .ant-layout {
+              height: 100vh;
+              overflow: hidden;
+            }
+            /* Make the content area scrollable */
+            .ant-layout-content {
+              height: 100%;
+              overflow-y: auto !important;
+              scroll-behavior: smooth;
+            }
+            /* Ensure the sider is fixed height and scrollable if items are too many */
+            .ant-layout-sider {
+              height: 100vh;
+              overflow-y: auto;
+            }
+            /* Optional: customize scrollbar for premium look */
+            .ant-layout-content::-webkit-scrollbar {
+              width: 6px;
+            }
+            .ant-layout-content::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            .ant-layout-content::-webkit-scrollbar-thumb {
+              background: rgba(248, 134, 1, 0.2);
+              border-radius: 3px;
+            }
+            .ant-layout-content::-webkit-scrollbar-thumb:hover {
+              background: rgba(248, 134, 1, 0.4);
+            }
+          `}</style>
           <AntdApp>
             <OrganizationProvider>
               <DevtoolsProvider>
