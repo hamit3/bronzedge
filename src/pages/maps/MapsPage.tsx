@@ -4,7 +4,7 @@ import { useOrganization } from "../../contexts/organization";
 import { MapView } from "./MapView";
 import { DeviceInfoCard } from "./DeviceInfoCard";
 import { MapFilters } from "./MapFilters";
-import { Grid } from "antd";
+import { Grid, Empty, Spin } from "antd";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 
@@ -35,10 +35,10 @@ export const MapsPage: React.FC = () => {
         queryOptions: { enabled: !!activeOrgId },
     });
 
-    const allDevices = (devicesQuery.data?.data || []) as any[];
+    const allDevices = useMemo(() => (devicesQuery.data?.data || []) as any[], [devicesQuery.data]);
+    const devicesLoading = devicesQuery.isLoading;
 
     // 2. Fetch GNSS Readings
-    // IMPORTANT: Based on ShowcasePage, gnss_readings uses the nRF 'device_id' string, NOT the UUID.
     const nrfDeviceIds = useMemo(() => allDevices.map(d => d.device_id).filter(Boolean), [allDevices]);
     const uuidDeviceIds = useMemo(() => allDevices.map(d => d.id).filter(Boolean), [allDevices]);
 
@@ -56,7 +56,7 @@ export const MapsPage: React.FC = () => {
         queryOptions: { enabled: nrfDeviceIds.length > 0 },
     });
 
-    // 3. Fetch Recent Messages (Used UUID 'device_id' earlier to avoid UUID error)
+    // 3. Fetch Recent Messages
     const { query: messagesQuery } = useList({
         resource: "device_messages",
         filters: [
@@ -75,10 +75,9 @@ export const MapsPage: React.FC = () => {
     const deviceLocations = useMemo(() => {
         const locs: Record<string, { lat: number; lng: number; received_at: string } | null> = {};
 
-        // A. Process gnss_readings (uses nRF ID 'device_id' in its records)
+        // A. Process gnss_readings
         const gnssData = gnssQuery.data?.data || [];
         gnssData.forEach((item: any) => {
-            // Find the device matching this nRF ID to get its UUID
             const device = allDevices.find(d => d.device_id === item.device_id);
             if (device && !locs[device.id]) {
                 locs[device.id] = {
@@ -89,7 +88,7 @@ export const MapsPage: React.FC = () => {
             }
         });
 
-        // B. Process device_messages (already uses UUID in its records)
+        // B. Process device_messages
         const messages = messagesQuery.data?.data || [];
         messages.forEach((msg: any) => {
             if (!locs[msg.device_id]) {
@@ -109,19 +108,56 @@ export const MapsPage: React.FC = () => {
         return locs;
     }, [gnssQuery.data, messagesQuery.data, allDevices]);
 
-    // Update map center to first available location if no device is selected
+    // 4. Filter devices for markers
+    const filteredDevices = useMemo(() => {
+        const search = searchText.trim().toLowerCase();
+        return allDevices.filter(d => {
+            const matchesSearch = !search ||
+                (d.name && String(d.name).toLowerCase().includes(search)) ||
+                (d.device_id && String(d.device_id).toLowerCase().includes(search));
+
+            const matchesStatus = statusFilter === "all" ||
+                (statusFilter === "active" && d.is_active) ||
+                (statusFilter === "inactive" && !d.is_active);
+
+            let matchesLastSeen = true;
+            if (lastSeenFilter !== "any") {
+                const threshold = dayjs().subtract(
+                    lastSeenFilter === "1h" ? 1 :
+                        lastSeenFilter === "6h" ? 6 :
+                            lastSeenFilter === "24h" ? 24 :
+                                lastSeenFilter === "7d" ? 168 : 0,
+                    "hour"
+                );
+                matchesLastSeen = d.last_seen && dayjs(d.last_seen).isAfter(threshold);
+            }
+
+            return matchesSearch && matchesStatus && matchesLastSeen;
+        });
+    }, [allDevices, searchText, statusFilter, lastSeenFilter]);
+
+    // Auto-center map when filters change and results are narrow
     useEffect(() => {
-        if (!selectedDevice) {
+        if (filteredDevices.length > 0 && filteredDevices.length <= 5 && searchText.trim() !== "") {
+            // Find first device with a location
+            const deviceWithLoc = filteredDevices.find(d => deviceLocations[d.id]);
+            if (deviceWithLoc) {
+                const loc = deviceLocations[deviceWithLoc.id];
+                if (loc) {
+                    setMapCenter({ lat: loc.lat, lng: loc.lng });
+                    setMapZoom(12);
+                }
+            }
+        } else if (!selectedDevice && searchText.trim() === "") {
+            // Re-center to first available device if search cleared
             const firstLoc = Object.values(deviceLocations).find(l => !!l);
             if (firstLoc) {
                 setMapCenter({ lat: firstLoc.lat, lng: firstLoc.lng });
-                setMapZoom(10);
             }
         }
-    }, [deviceLocations, selectedDevice === null]);
+    }, [filteredDevices, deviceLocations, searchText, selectedDevice]);
 
-    // Messages for the selected device specifically
-    const { query: selectedMessagesQuery } = useList({
+    const recentMessagesQuery = useList({
         resource: "device_messages",
         filters: [
             { field: "device_id", operator: "eq", value: selectedDevice?.id },
@@ -131,7 +167,7 @@ export const MapsPage: React.FC = () => {
         queryOptions: { enabled: !!selectedDevice },
     });
 
-    const recentMessages = (selectedMessagesQuery.data?.data || []) as any[];
+    const recentMessages = (recentMessagesQuery.query.data?.data || []) as any[];
 
     const lastLocation = useMemo(() => {
         if (!selectedDevice) return null;
@@ -149,33 +185,6 @@ export const MapsPage: React.FC = () => {
             accuracy: null
         };
     }, [lastLocation]);
-
-    // 4. Filter devices for markers
-    const filteredDevices = useMemo(() => {
-        return allDevices.filter(d => {
-            const matchesSearch = !searchText ||
-                d.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-                d.device_id?.toLowerCase().includes(searchText.toLowerCase());
-
-            const matchesStatus = statusFilter === "all" ||
-                (statusFilter === "active" && d.is_active) ||
-                (statusFilter === "inactive" && !d.is_active);
-
-            let matchesLastSeen = true;
-            if (lastSeenFilter !== "any") {
-                const threshold = dayjs().subtract(
-                    lastSeenFilter === "1h" ? 1 :
-                        lastSeenFilter === "6h" ? 6 :
-                            lastSeenFilter === "24h" ? 24 :
-                                lastSeenFilter === "7d" ? 168 : 0,
-                    "hour"
-                );
-                matchesLastSeen = dayjs(d.last_seen).isAfter(threshold);
-            }
-
-            return matchesSearch && matchesStatus && matchesLastSeen;
-        });
-    }, [allDevices, searchText, statusFilter, lastSeenFilter]);
 
     return (
         <div style={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", background: "#0b0e14", overflow: "hidden" }}>
@@ -201,6 +210,12 @@ export const MapsPage: React.FC = () => {
             </div>
 
             <div style={{ flex: 1, position: "relative" }}>
+                {devicesLoading && allDevices.length === 0 ? (
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 5, textAlign: 'center' }}>
+                        <Spin size="large" tip="Loading devices..." />
+                    </div>
+                ) : null}
+
                 <MapView
                     devices={filteredDevices}
                     deviceLocations={deviceLocations as any}
@@ -209,6 +224,22 @@ export const MapsPage: React.FC = () => {
                     zoom={mapZoom}
                     apiKey={GOOGLE_MAPS_API_KEY}
                 />
+
+                {searchText.trim() !== "" && filteredDevices.length === 0 && !devicesLoading && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 5,
+                        background: 'rgba(0,0,0,0.7)',
+                        padding: '20px',
+                        borderRadius: '12px',
+                        backdropFilter: 'blur(8px)'
+                    }}>
+                        <Empty description={<span style={{ color: '#fff' }}>No devices match your search</span>} />
+                    </div>
+                )}
 
                 {selectedDevice && (
                     <div style={{ position: "absolute", top: 16, right: 16, zIndex: 2 }}>
