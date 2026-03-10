@@ -12,6 +12,8 @@ import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { DeviceMessage, Session } from "./types";
 import { isMovingAtTime } from "./utils";
 
+const libraries: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry", "places"];
+
 const { Text } = Typography;
 
 interface PlaybackTabProps {
@@ -120,6 +122,7 @@ export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions })
     const { isLoaded } = useJsApiLoader({
         id: "google-map-script",
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+        libraries,
     });
 
     const path = useMemo(() => {

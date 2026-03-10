@@ -8,9 +8,9 @@ import {
     UserOutlined,
 } from "@ant-design/icons";
 import { OrganizationTab } from "./OrganizationTab";
-
 import { DevicesTab } from "./DevicesTab";
 import { ProfileTab } from "./ProfileTab";
+import { GeofencesTab } from "./GeofencesTab";
 import { useOrganization } from "../../contexts/organization";
 
 const { Title, Text } = Typography;
@@ -94,6 +94,22 @@ export const AccountPage: React.FC = () => {
             children: (
                 <DevicesTab
                     organizationId={activeOrgId}
+                    isAdmin={isAdmin}
+                    isOperator={isOperator}
+                />
+            ),
+        },
+        {
+            key: "geofences",
+            label: (
+                <span>
+                    <DesktopOutlined />
+                    {" Geofencing"}
+                </span>
+            ),
+            children: (
+                <GeofencesTab
+                    organizationId={activeOrgId ?? null}
                     isAdmin={isAdmin}
                     isOperator={isOperator}
                 />

@@ -26,6 +26,7 @@ import {
   UserOutlined,
   EnvironmentOutlined,
   BellOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 
 import { ReportList } from "./pages/reports";
@@ -36,6 +37,10 @@ import { ShowcasePage } from "./pages/showcase";
 import { MapsPage } from "./pages/maps/MapsPage";
 import { AccountPage } from "./pages/account";
 import { UpdatePasswordPage } from "./pages/update-password";
+import { RulesPage } from "./pages/rules";
+import { RulesMenuLabel } from "./pages/rules/RulesMenuLabel";
+
+const libraries: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry", "places"];
 
 function App() {
   // Prevent Google Maps wrapper from removing the script on route changes
@@ -43,6 +48,7 @@ function App() {
   useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+    libraries,
   });
 
   return (
@@ -134,6 +140,14 @@ function App() {
                       meta: {
                         label: "Alerts",
                         icon: <BellOutlined />,
+                      },
+                    },
+                    {
+                      name: "rules",
+                      list: "/rules",
+                      meta: {
+                        label: "Rules",
+                        icon: <ThunderboltOutlined />,
                       },
                     },
                     {
@@ -250,6 +264,7 @@ function App() {
                       <Route path="/maps" element={<MapsPage />} />
                       <Route path="/reports" element={<ReportList />} />
                       <Route path="/alerts" element={<AlertsPage />} />
+                      <Route path="/rules" element={<RulesPage />} />
                       <Route path="/account" element={<AccountPage />} />
                     </Route>
                     <Route

@@ -60,6 +60,7 @@ export const ShowcasePage: React.FC = () => {
     const { isLoaded: mapsLoaded } = useJsApiLoader({
         id: "google-map-script",
         googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+        libraries: ["drawing", "geometry", "places"] as any,
     });
 
     // --- One week ago boundary (ISO string, computed once per render) ---
@@ -75,8 +76,8 @@ export const ShowcasePage: React.FC = () => {
         sorters: [{ field: "name", order: "asc" }],
         queryOptions: { enabled: !!activeOrgId },
     });
-    const devicesData = (devicesQuery.query.data?.data ?? []) as any[];
-    const devicesLoading = devicesQuery.query.isLoading;
+    const devicesData = (devicesQuery.query?.data?.data ?? []) as any[];
+    const devicesLoading = devicesQuery.query?.isLoading;
 
     const deviceIds = useMemo(() => devicesData.map((d: any) => d.device_id as string), [devicesData]);
 
@@ -104,8 +105,8 @@ export const ShowcasePage: React.FC = () => {
         pagination: { pageSize: 200 },
         queryOptions: { enabled: deviceIds.length > 0 },
     });
-    const statusData = (statusQuery.query.data?.data ?? []) as any[];
-    const statusLoading = statusQuery.query.isLoading;
+    const statusData = (statusQuery.query?.data?.data ?? []) as any[];
+    const statusLoading = statusQuery.query?.isLoading;
 
     // Helper: get friendly name for a device_id
     const getDeviceName = useCallback(
@@ -127,8 +128,8 @@ export const ShowcasePage: React.FC = () => {
         sorters: [{ field: "ts", order: "desc" }],
         queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
-    const tempData = tempQuery.query.data?.data ?? [];
-    const tempLoading = tempQuery.query.isLoading;
+    const tempData = tempQuery.query?.data?.data ?? [];
+    const tempLoading = tempQuery.query?.isLoading;
 
     const rsrpQuery = useList({
         resource: "rsrp_readings",
@@ -137,8 +138,8 @@ export const ShowcasePage: React.FC = () => {
         sorters: [{ field: "ts", order: "desc" }],
         queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
-    const rsrpData = rsrpQuery.query.data?.data ?? [];
-    const rsrpLoading = rsrpQuery.query.isLoading;
+    const rsrpData = rsrpQuery.query?.data?.data ?? [];
+    const rsrpLoading = rsrpQuery.query?.isLoading;
 
     const alertsQuery = useList({
         resource: "device_alerts",
@@ -147,7 +148,7 @@ export const ShowcasePage: React.FC = () => {
         sorters: [{ field: "ts", order: "desc" }],
         queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
-    const alertCount = alertsQuery.query.data?.total ?? 0;
+    const alertCount = alertsQuery.query?.data?.total ?? 0;
 
     const gnssQuery = useList({
         resource: "gnss_readings",
@@ -156,8 +157,8 @@ export const ShowcasePage: React.FC = () => {
         sorters: [{ field: "ts", order: "desc" }],
         queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
-    const gnssData = gnssQuery.query.data?.data ?? [];
-    const gnssLoading = gnssQuery.query.isLoading;
+    const gnssData = gnssQuery.query?.data?.data ?? [];
+    const gnssLoading = gnssQuery.query?.isLoading;
 
 
 
@@ -341,7 +342,7 @@ export const ShowcasePage: React.FC = () => {
                             <div style={{ height: 300 }}>
                                 {tempLoading ? (
                                     <div style={centeredStyle}><Spin size="large" /></div>
-                                ) : chartData.length > 0 ? (
+                                ) : (chartData && chartData.length > 0) ? (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={chartData}>
                                             <defs>
@@ -375,7 +376,7 @@ export const ShowcasePage: React.FC = () => {
                             <div style={{ height: 300 }}>
                                 {rsrpLoading ? (
                                     <div style={centeredStyle}><Spin size="large" /></div>
-                                ) : signalChartData.length > 0 ? (
+                                ) : (signalChartData && signalChartData.length > 0) ? (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={signalChartData}>
                                             <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" vertical={false} />
@@ -421,7 +422,7 @@ export const ShowcasePage: React.FC = () => {
                             <div style={{ height: 380, borderRadius: 8, overflow: 'hidden' }}>
                                 {gnssLoading ? (
                                     <div style={centeredStyle}><Spin /></div>
-                                ) : mapData.length === 0 ? (
+                                ) : (!mapData || mapData.length === 0) ? (
                                     <div style={centeredStyle}><Empty description={<span style={{ color: 'rgba(255,255,255,0.4)' }}>No GNSS data.</span>} /></div>
                                 ) : mapView === 'chart' ? (
                                     <div style={{ height: '100%', background: '#141414', padding: 8, borderRadius: 8 }}>
