@@ -2,15 +2,16 @@ import React, { useState, useCallback, useRef, useMemo } from "react";
 import { useList, useCreate, useDelete } from "@refinedev/core";
 import { GoogleMap, DrawingManager, Polygon, Circle, Rectangle, useJsApiLoader } from "@react-google-maps/api";
 import { Button, Table, Space, Card, Typography, Spin, Popconfirm, Modal, Input, message, Form, Tag } from "antd";
-import { DeleteOutlined, GlobalOutlined, EnvironmentOutlined } from "@ant-design/icons";
+import { DeleteOutlined, GlobalOutlined, EnvironmentOutlined, SearchOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { Autocomplete } from "@react-google-maps/api";
 
 const { Text, Title } = Typography;
 
 const mapContainerStyle = {
     width: "100%",
-    height: "450px",
-    borderRadius: "8px",
+    height: "500px",
+    borderRadius: "12px",
 };
 
 const darkMapStyles: google.maps.MapTypeStyle[] = [

@@ -12,7 +12,7 @@ export const FilterContainer: React.FC<FilterContainerProps> = ({ title, childre
     return (
         <div
             style={{
-                background: "rgba(20, 20, 20, 0.95)",
+                background: "rgba(13, 20, 36, 0.95)",
                 backdropFilter: "blur(16px)",
                 padding: "16px 20px",
                 borderRadius: "14px",

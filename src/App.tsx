@@ -63,9 +63,9 @@ function App() {
             borderRadius: 6,
             fontSize: 13,
             colorTextSecondary: "rgba(255, 255, 255, 0.65)",
-            colorBgLayout: "#1a1a1a",
-            colorBgContainer: "#242424",
-            colorBgElevated: "#2d2d2d",
+            colorBgLayout: "#050a14",
+            colorBgContainer: "#0d1424",
+            colorBgElevated: "#161f33",
           },
           components: {
             Typography: {
@@ -139,6 +139,12 @@ function App() {
             }
             .ant-layout-content::-webkit-scrollbar-thumb:hover {
               background: rgba(248, 134, 1, 0.4);
+            }
+            /* Google Maps Control Text Shrink */
+            .gm-style-mtc > button {
+              font-size: 11px !important;
+              padding: 0 8px !important;
+              height: 28px !important;
             }
           `}</style>
           <AntdApp>
@@ -279,7 +285,7 @@ function App() {
                                     alignItems: "center",
                                     gap: "10px",
                                     padding: "6px 14px",
-                                    backgroundColor: "rgba(0, 0, 0, 0.6)",
+                                    backgroundColor: "rgba(13, 20, 36, 0.7)",
                                     backdropFilter: "blur(8px)",
                                     borderRadius: "20px",
                                     border: "1px solid rgba(82, 196, 26, 0.3)",
