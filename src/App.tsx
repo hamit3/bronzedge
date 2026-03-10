@@ -140,11 +140,35 @@ function App() {
             .ant-layout-content::-webkit-scrollbar-thumb:hover {
               background: rgba(248, 134, 1, 0.4);
             }
-            /* Google Maps Control Text Shrink */
-            .gm-style-mtc > button {
-              font-size: 11px !important;
-              padding: 0 8px !important;
-              height: 28px !important;
+            /* Google Maps Control Enhancement */
+            .gm-style-mtc > button, 
+            .gm-style-mtc ul li,
+            .gm-control-active {
+              font-size: 13px !important;
+              font-weight: 500 !important;
+              padding: 0 12px !important;
+              height: 32px !important;
+              display: flex !important;
+              align-items: center !important;
+              color: #333 !important; /* Default dark text for the main buttons if they are light */
+              background-color: #fff !important;
+            }
+            /* Specifically target the dropdown menu for Satellite options (Labels etc) */
+            .gm-style-mtc ul {
+              background-color: #ffffff !important;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+            }
+            .gm-style-mtc ul li {
+              color: #333 !important;
+              background-color: #ffffff !important;
+              cursor: pointer !important;
+            }
+            .gm-style-mtc ul li:hover {
+              background-color: #f0f0f0 !important;
+            }
+            /* Transition for better feel */
+            .gm-style-mtc > button, .gm-style-mtc ul li {
+              transition: background-color 0.2s ease;
             }
           `}</style>
           <AntdApp>

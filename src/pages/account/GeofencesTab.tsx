@@ -181,6 +181,18 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
         }
     ];
 
+    const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+
+    const onPlaceChanged = () => {
+        if (autocomplete !== null) {
+            const place = autocomplete.getPlace();
+            if (place.geometry && place.geometry.location) {
+                mapRef.current?.panTo(place.geometry.location);
+                mapRef.current?.setZoom(15);
+            }
+        }
+    };
+
     if (!isLoaded) return <div style={{ minHeight: 300, display: "flex", justifyContent: "center", alignItems: "center" }}><Spin /></div>;
 
     return (
@@ -194,7 +206,7 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
                 )}
             </div>
 
-            <div style={{ position: "relative", marginBottom: 24, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, overflow: "hidden" }}>
+            <div style={{ position: "relative", marginBottom: 24, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}>
                 <GoogleMap
                     mapContainerStyle={mapContainerStyle}
                     center={{ lat: 39.9, lng: 32.8 }}
@@ -202,6 +214,32 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
                     options={{ styles: darkMapStyles, disableDefaultUI: false }}
                     onLoad={(map) => { mapRef.current = map; }}
                 >
+                    <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '50px',
+                        zIndex: 10
+                    }}>
+                        <Autocomplete
+                            onLoad={(ac) => setAutocomplete(ac)}
+                            onPlaceChanged={onPlaceChanged}
+                        >
+                            <Input
+                                placeholder="Search location..."
+                                prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.45)' }} />}
+                                style={{
+                                    width: '300px',
+                                    backgroundColor: 'rgba(13, 20, 36, 0.9)',
+                                    backdropFilter: 'blur(8px)',
+                                    border: '1px solid rgba(248, 134, 1, 0.3)',
+                                    color: '#fff',
+                                    borderRadius: '8px',
+                                    height: '36px'
+                                }}
+                            />
+                        </Autocomplete>
+                    </div>
+
                     {isDrawMode && (
                         <DrawingManager
                             onPolygonComplete={onPolygonComplete}
