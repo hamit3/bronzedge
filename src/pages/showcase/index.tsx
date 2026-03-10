@@ -54,6 +54,7 @@ export const ShowcasePage: React.FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [mapView, setMapView] = useState<'chart' | 'googlemaps'>('chart');
     const [activeMarker, setActiveMarker] = useState<number | null>(null);
+    const [showStatusHover, setShowStatusHover] = useState(false);
     const invalidate = useInvalidate();
     const { activeOrgId } = useOrganization();
 
@@ -271,21 +272,6 @@ export const ShowcasePage: React.FC = () => {
         queryOptions: { enabled: !devicesLoading && !!activeOrgId },
     });
 
-    const { tableProps: rawTableProps } = useTable({
-        resource: "raw_messages",
-        filters: {
-            permanent: [
-                { field: "received_at", operator: "gte", value: weekAgo },
-                ...filters.filter(f => f.field === "device_id")
-            ]
-        },
-        sorters: { initial: [{ field: "received_at", order: "desc" }] },
-        pagination: { pageSize: 20 },
-        syncWithLocation: false,
-        queryOptions: { enabled: !devicesLoading && !!activeOrgId },
-    });
-
-
 
     return (
         <div style={{ padding: "24px", minHeight: "100vh" }}>
@@ -462,7 +448,11 @@ export const ShowcasePage: React.FC = () => {
 
                     <Col xs={24} lg={6}>
                         <Card variant="borderless" className="dashboard-card" bodyStyle={{ padding: 0, height: 160, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ position: 'relative', height: 160, width: '100%', borderRadius: 8, overflow: 'hidden' }}>
+                            <div
+                                style={{ position: 'relative', height: 160, width: '100%', borderRadius: 8, overflow: 'hidden' }}
+                                onMouseEnter={() => setShowStatusHover(true)}
+                                onMouseLeave={() => setShowStatusHover(false)}
+                            >
                                 {/* Floating Title Overlay */}
                                 <div style={{
                                     position: 'absolute', top: 12, left: 12, zIndex: 10,
@@ -475,6 +465,28 @@ export const ShowcasePage: React.FC = () => {
                                         LAST POSITION
                                     </Text>
                                 </div>
+
+                                {/* Floating Status Overlay on Card Hover */}
+                                {showStatusHover && statusData && statusData.length > 0 && (() => {
+                                    const s = statusData.find((sd: any) => sd.device_id === gnssData[0]?.device_id) || statusData[0];
+                                    return (
+                                        <div style={{
+                                            position: 'absolute', top: 12, right: 12, zIndex: 10,
+                                            background: 'rgba(29, 29, 29, 0.95)', padding: '8px 12px', borderRadius: 8,
+                                            backdropFilter: 'blur(8px)', border: '1px solid rgba(248,134,1,0.3)',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                                            color: '#fff', fontSize: 11, minWidth: 150
+                                        }}>
+                                            <strong style={{ fontSize: 12, color: '#f88601' }}>{getDeviceName(s.device_id)}</strong><br />
+                                            <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: 'min-content auto', gap: '4px 8px', whiteSpace: 'nowrap' }}>
+                                                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Battery:</span> <span>{s.battery_mv ? `${s.battery_mv} mV` : "--"}</span>
+                                                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Firmware:</span> <span>{s.firmware || "--"}</span>
+                                                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Operator:</span> <span>{s.operator || "--"}</span>
+                                                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Network:</span> <span>{s.band || "--"} / {s.mode || "--"}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 {gnssLoading ? <Spin size="small" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} /> : (!mapData || mapData.length === 0) ? (
                                     <div style={{ height: '100%', width: '100%', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -533,54 +545,6 @@ export const ShowcasePage: React.FC = () => {
                                         { title: "Level", dataIndex: "level", width: 60, render: (v: any) => { const c = ["#52c41a", "#faad14", "#ff4d4f"]; return <Badge color={c[v] || "#1890ff"} text={v} />; } },
                                         { title: "Source", dataIndex: "source", width: 80 },
                                         { title: "Message", dataIndex: "message" },
-                                    ]}
-                                />
-                            ),
-                        },
-                        {
-                            key: '2',
-                            label: <span><DatabaseOutlined /> Raw Messages</span>,
-                            children: (
-                                <Table
-                                    {...rawTableProps} rowKey="id" size="small" className="industrial-table"
-                                    columns={[
-                                        { title: "Received", dataIndex: "received_at", width: 130, render: (v: any) => dayjs(v).format("HH:mm:ss.SSS") },
-                                        { title: "Device", dataIndex: "device_id", width: 140 },
-                                        { title: "App", dataIndex: "app_id", width: 90, render: (v: any) => <Tag style={{ borderColor: '#f88601', color: '#f88601', background: 'transparent' }}>{v}</Tag> },
-                                        {
-                                            title: "Payload", dataIndex: "payload",
-                                            render: (p: any) => (
-                                                <Tooltip title="Click to copy">
-                                                    <pre onClick={() => navigator.clipboard.writeText(JSON.stringify(p, null, 2))}
-                                                        style={{ fontSize: 10, margin: 0, color: '#52c41a', cursor: 'pointer', maxHeight: 80, overflow: 'auto' }}>
-                                                        {JSON.stringify(p)}
-                                                    </pre>
-                                                </Tooltip>
-                                            )
-                                        },
-                                    ]}
-                                />
-                            ),
-                        },
-                        {
-                            key: '3',
-                            label: <span><FileSearchOutlined /> Device Status</span>,
-                            children: (
-                                <Table
-                                    dataSource={statusData as any[]} loading={statusLoading}
-                                    rowKey="device_id" size="small" className="industrial-table"
-                                    columns={[
-                                        {
-                                            title: "Name",
-                                            key: "name",
-                                            render: (record: any) => <Text style={{ fontWeight: 600, color: '#fff' }}>{getDeviceName(record.device_id)}</Text>
-                                        },
-                                        { title: "Device ID", dataIndex: "device_id", render: (v: any) => <code style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{v}</code> },
-                                        { title: "Firmware", dataIndex: "firmware" },
-                                        { title: "Battery", dataIndex: "battery_mv", render: (v: any) => <Text style={{ color: v < 3600 ? '#ff4d4f' : '#52c41a' }}>{v} mV</Text> },
-                                        { title: "Operator", dataIndex: "operator" },
-                                        { title: "IP", dataIndex: "ip_address", render: (v: any) => <code style={{ color: '#aaa', fontSize: 11 }}>{v}</code> },
-                                        { title: "Last Seen", dataIndex: "ts", render: (v: any) => <Badge status="processing" text={dayjs(v).fromNow()} /> },
                                     ]}
                                 />
                             ),
