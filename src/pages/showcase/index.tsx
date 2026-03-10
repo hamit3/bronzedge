@@ -58,6 +58,7 @@ export const ShowcasePage: React.FC = () => {
     const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '';
 
     const { isLoaded: mapsLoaded } = useJsApiLoader({
+        id: "google-map-script",
         googleMapsApiKey: GOOGLE_MAPS_API_KEY,
     });
 
@@ -252,7 +253,6 @@ export const ShowcasePage: React.FC = () => {
                             allowClear
                             onChange={setSelectedDeviceId}
                             value={selectedDeviceId}
-                            dropdownStyle={{ background: '#1d1d1d' }}
                             loading={devicesLoading}
                             disabled={devicesLoading || deviceIds.length === 0}
                             optionLabelProp="label"
@@ -283,7 +283,7 @@ export const ShowcasePage: React.FC = () => {
                 {/* KPI Cards */}
                 <Row gutter={[16, 16]}>
                     <Col xs={24} sm={12} md={6}>
-                        <Card bordered={false} className="dashboard-card">
+                        <Card variant="borderless" className="dashboard-card">
                             <Statistic
                                 title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Latest Temperature</span>}
                                 value={latestTemp}
@@ -296,7 +296,7 @@ export const ShowcasePage: React.FC = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
-                        <Card bordered={false} className="dashboard-card">
+                        <Card variant="borderless" className="dashboard-card">
                             <Statistic
                                 title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Signal Strength (RSRP)</span>}
                                 value={latestRsrp}
@@ -308,7 +308,7 @@ export const ShowcasePage: React.FC = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
-                        <Card bordered={false} className="dashboard-card">
+                        <Card variant="borderless" className="dashboard-card">
                             <Statistic
                                 title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Total Alerts</span>}
                                 value={alertCount}
@@ -318,7 +318,7 @@ export const ShowcasePage: React.FC = () => {
                         </Card>
                     </Col>
                     <Col xs={24} sm={12} md={6}>
-                        <Card bordered={false} className="dashboard-card">
+                        <Card variant="borderless" className="dashboard-card">
                             <Statistic
                                 title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Active Devices (Org)</span>}
                                 value={devicesLoading ? "--" : deviceIds.length}
@@ -336,7 +336,7 @@ export const ShowcasePage: React.FC = () => {
                     <Col xs={24} lg={12}>
                         <Card
                             title={<span style={{ color: "#fff" }}>Temperature History <Tag color="orange">{tempData.length} readings</Tag></span>}
-                            bordered={false} className="shadow-premium"
+                            variant="borderless" className="shadow-premium"
                         >
                             <div style={{ height: 300 }}>
                                 {tempLoading ? (
@@ -370,7 +370,7 @@ export const ShowcasePage: React.FC = () => {
                     <Col xs={24} lg={12}>
                         <Card
                             title={<span style={{ color: "#fff" }}>RSRP Signal <Tag color="blue">{rsrpData.length} readings</Tag></span>}
-                            bordered={false} className="shadow-premium"
+                            variant="borderless" className="shadow-premium"
                         >
                             <div style={{ height: 300 }}>
                                 {rsrpLoading ? (
@@ -414,7 +414,7 @@ export const ShowcasePage: React.FC = () => {
                             />
                         </div>
                     }
-                    bordered={false} className="shadow-premium"
+                    variant="borderless" className="shadow-premium"
                 >
                     <Row gutter={24}>
                         <Col xs={24} lg={16}>
@@ -437,7 +437,10 @@ export const ShowcasePage: React.FC = () => {
                                         </ResponsiveContainer>
                                     </div>
                                 ) : !mapsLoaded ? (
-                                    <div style={centeredStyle}><Spin tip="Loading Google Maps..." /></div>
+                                    <div style={{ ...centeredStyle, flexDirection: 'column', gap: 12 }}>
+                                        <Spin />
+                                        <Text style={{ color: 'rgba(255,255,255,0.45)' }}>Loading Google Maps...</Text>
+                                    </div>
                                 ) : !GOOGLE_MAPS_API_KEY ? (
                                     <div style={centeredStyle}>
                                         <Empty description="VITE_GOOGLE_MAPS_API_KEY is not set" />
@@ -515,7 +518,7 @@ export const ShowcasePage: React.FC = () => {
                 </Card>
 
                 {/* Logs, Raw, Status Tabs */}
-                <Card bordered={false} className="shadow-premium">
+                <Card variant="borderless" className="shadow-premium">
                     <Tabs defaultActiveKey="1" items={[
                         {
                             key: '1',

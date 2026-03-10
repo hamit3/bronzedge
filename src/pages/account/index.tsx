@@ -57,12 +57,15 @@ export const AccountPage: React.FC = () => {
             <div
                 style={{
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
                     minHeight: "60vh",
+                    gap: 12,
                 }}
             >
-                <Spin size="large" tip="Loading account..." />
+                <Spin size="large" />
+                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Loading account...</span>
             </div>
         );
     }

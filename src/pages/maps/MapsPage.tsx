@@ -211,8 +211,9 @@ export const MapsPage: React.FC = () => {
 
             <div style={{ flex: 1, position: "relative" }}>
                 {devicesLoading && allDevices.length === 0 ? (
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 5, textAlign: 'center' }}>
-                        <Spin size="large" tip="Loading devices..." />
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                        <Spin size="large" />
+                        <span style={{ color: 'rgba(255,255,255,0.45)' }}>Loading devices...</span>
                     </div>
                 ) : null}
 

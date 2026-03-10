@@ -173,7 +173,7 @@ export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions })
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-            <Card bordered={false} bodyStyle={{ padding: 0, overflow: 'hidden' }}>
+            <Card variant="borderless" styles={{ body: { padding: 0, overflow: 'hidden' } }}>
                 {isLoaded ? (
                     <GoogleMap
                         mapContainerStyle={mapContainerStyle}
@@ -236,7 +236,7 @@ export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions })
                 )}
             </Card>
 
-            <Card bordered={false}>
+            <Card variant="borderless">
                 <Row gutter={24} align="middle">
                     <Col>
                         <Space>

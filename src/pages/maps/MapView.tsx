@@ -76,18 +76,20 @@ export const MapView: React.FC<MapViewProps> = ({
 
     if (!isLoaded) return <Skeleton.Button active style={{ width: "100%", height: "100%" }} />;
 
+    const safeCenter = center && !isNaN(center.lat) && !isNaN(center.lng) ? center : { lat: 39.9, lng: 32.8 };
+
     return (
         <GoogleMap
             mapContainerStyle={containerStyle}
-            center={center}
+            center={safeCenter}
             zoom={zoom}
             onLoad={onLoad}
             onUnmount={onUnmount}
             options={mapOptions}
         >
             {devices.map((device) => {
-                const location = deviceLocations[device.id];
-                if (!location) return null;
+                const location = deviceLocations?.[device.id];
+                if (!location || isNaN(location.lat) || isNaN(location.lng)) return null;
 
                 return (
                     <Marker

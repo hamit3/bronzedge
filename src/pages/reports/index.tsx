@@ -204,8 +204,9 @@ export const ReportList: React.FC = () => {
                     style={{ padding: "60px 0" }}
                 />
             ) : isLoading ? (
-                <div style={{ padding: "100px 0", textAlign: "center" }}>
-                    <Spin size="large" tip="Processing activity data..." />
+                <div style={{ padding: "100px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+                    <Spin size="large" />
+                    <span style={{ color: 'rgba(255,255,255,0.45)' }}>Processing activity data...</span>
                 </div>
             ) : (
                 <>

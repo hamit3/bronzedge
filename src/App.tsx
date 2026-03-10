@@ -13,6 +13,7 @@ import routerProvider, {
 import { liveProvider } from "@refinedev/supabase";
 import { App as AntdApp, ConfigProvider, theme, Tooltip, Badge } from "antd";
 import { BrowserRouter, Route, Routes, Outlet } from "react-router";
+import { useJsApiLoader } from "@react-google-maps/api";
 import authProvider from "./providers/auth";
 import { dataProvider } from "./providers/data";
 import { supabaseClient } from "./providers/supabase-client";
@@ -37,6 +38,13 @@ import { AccountPage } from "./pages/account";
 import { UpdatePasswordPage } from "./pages/update-password";
 
 function App() {
+  // Prevent Google Maps wrapper from removing the script on route changes
+  // by holding a persistent reference to the loader at the root level.
+  useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+  });
+
   return (
     <BrowserRouter>
       <ConfigProvider
