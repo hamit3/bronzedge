@@ -188,7 +188,7 @@ export const MapsPage: React.FC = () => {
     }, [lastLocation]);
 
     return (
-        <div style={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", background: "#0b0e14", overflow: "hidden", padding: "24px" }}>
+        <div style={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", background: "transparent", overflow: "hidden", padding: "24px" }}>
             <PageHeader 
                 title="Maps" 
                 subtitle={`Live location of your fleet — ${new Date().toLocaleString('tr-TR')}`} 

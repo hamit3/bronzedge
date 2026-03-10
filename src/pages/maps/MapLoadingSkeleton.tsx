@@ -6,7 +6,7 @@ export const MapLoadingSkeleton: React.FC = () => {
     <div style={{
       width: "100%",
       height: "100%",
-      backgroundColor: "#0b0e14",
+      backgroundColor: "transparent",
       position: "relative",
       overflow: "hidden",
       display: "flex",

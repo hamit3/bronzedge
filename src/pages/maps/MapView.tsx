@@ -6,7 +6,7 @@ import { MapLoadingSkeleton } from "./MapLoadingSkeleton";
 const containerStyle = {
     width: "100%",
     height: "100%",
-    backgroundColor: "#0b0e14",
+    backgroundColor: "#000000",
 };
 
 const LIBRARIES: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry", "places"];
@@ -19,11 +19,11 @@ const MAP_OPTIONS: google.maps.MapOptions = {
     streetViewControl: true,
     rotateControl: false,
     fullscreenControl: true,
-    backgroundColor: "#0b0e14", // Critical: prevents white flash while tiles load
+    backgroundColor: "#000000", // Critical: prevents white flash while tiles load
     styles: [
-        { elementType: "geometry", stylers: [{ color: "#0b0e14" }] },
+        { elementType: "geometry", stylers: [{ color: "#000000" }] },
         { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
-        { elementType: "labels.text.stroke", stylers: [{ color: "#111827" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#000000" }] },
         { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#374151" }] },
         { featureType: "administrative.land_parcel", elementType: "labels.text.fill", stylers: [{ color: "#4b5563" }] },
         { featureType: "poi", stylers: [{ visibility: "off" }] },
@@ -34,7 +34,7 @@ const MAP_OPTIONS: google.maps.MapOptions = {
         { featureType: "road.highway.controlled_access", elementType: "geometry", stylers: [{ color: "#4b5563" }] },
         { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#6b7280" }] },
         { featureType: "transit", stylers: [{ visibility: "off" }] },
-        { featureType: "water", elementType: "geometry", stylers: [{ color: "#111827" }] },
+        { featureType: "water", elementType: "geometry", stylers: [{ color: "#080808" }] },
         { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#374151" }] },
     ],
 };
@@ -84,7 +84,7 @@ export const MapView: React.FC<MapViewProps> = ({
     , [center]);
 
     return (
-        <div style={{ width: "100%", height: "100%", backgroundColor: "#0b0e14", position: "relative" }}>
+        <div style={{ width: "100%", height: "100%", backgroundColor: "transparent", position: "relative" }}>
             {/* 
                 Always render the skeleton initially. 
                 When isLoaded is false, it's the only thing visible.
