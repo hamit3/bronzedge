@@ -311,37 +311,6 @@ export const Header: React.FC = () => {
           </AutoComplete>
         </div>
 
-        {/* Sync indicator */}
-        <Tooltip title="Data sync">
-          <Space size={4} style={{ cursor: "help" }}>
-            <SyncOutlined
-              style={{ fontSize: "12px", color: token.colorTextTertiary }}
-            />
-            <Text style={{ fontSize: "11px", color: token.colorTextTertiary }}>
-              Live
-            </Text>
-          </Space>
-        </Tooltip>
-
-        {/* Notifications */}
-        <div onClick={() => navigate("/alerts")}>
-          <Badge count={activeAlertsCount} size="small" offset={[-2, 4]} color={token.colorPrimary}>
-            <Tooltip title="Alerts (Last 24h)">
-              <div
-                style={{
-                  padding: "4px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <BellOutlined
-                  style={{ fontSize: "16px", color: token.colorTextSecondary }}
-                />
-              </div>
-            </Tooltip>
-          </Badge>
-        </div>
 
         {/* User Profile */}
         <Dropdown
