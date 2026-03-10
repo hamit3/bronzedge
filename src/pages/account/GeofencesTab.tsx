@@ -48,7 +48,7 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
     const { isLoaded } = useJsApiLoader({
         id: "google-map-script",
         googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-        libraries
+        libraries: ["drawing", "geometry", "places"] as any
     });
 
     const { query: geofencesQuery } = useList({

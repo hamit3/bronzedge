@@ -27,6 +27,7 @@ import {
   EnvironmentOutlined,
   BellOutlined,
   ThunderboltOutlined,
+  UnorderedListOutlined,
 } from "@ant-design/icons";
 
 import { ReportList } from "./pages/reports";
@@ -38,6 +39,7 @@ import { MapsPage } from "./pages/maps/MapsPage";
 import { AccountPage } from "./pages/account";
 import { UpdatePasswordPage } from "./pages/update-password";
 import { RulesPage } from "./pages/rules";
+import { EventsPage } from "./pages/events";
 import { RulesMenuLabel } from "./pages/rules/RulesMenuLabel";
 
 const libraries: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry", "places"];
@@ -148,6 +150,14 @@ function App() {
                       meta: {
                         label: "Rules",
                         icon: <ThunderboltOutlined />,
+                      },
+                    },
+                    {
+                      name: "events",
+                      list: "/events",
+                      meta: {
+                        label: "Events",
+                        icon: <UnorderedListOutlined />,
                       },
                     },
                     {
@@ -265,6 +275,7 @@ function App() {
                       <Route path="/reports" element={<ReportList />} />
                       <Route path="/alerts" element={<AlertsPage />} />
                       <Route path="/rules" element={<RulesPage />} />
+                      <Route path="/events" element={<EventsPage />} />
                       <Route path="/account" element={<AccountPage />} />
                     </Route>
                     <Route

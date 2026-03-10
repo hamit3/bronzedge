@@ -62,6 +62,7 @@ export const MapView: React.FC<MapViewProps> = ({
     const { isLoaded } = useJsApiLoader({
         id: "google-map-script",
         googleMapsApiKey: apiKey,
+        libraries: ["drawing", "geometry", "places"] as any,
     });
 
     const [map, setMap] = useState<google.maps.Map | null>(null);
