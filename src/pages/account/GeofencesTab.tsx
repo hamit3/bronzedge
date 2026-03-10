@@ -154,8 +154,9 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
         {
             title: "Actions",
             key: "actions",
+            align: "right" as const,
             render: (_: any, record: any) => (
-                <Space>
+                <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
                     <Button size="small" icon={<EnvironmentOutlined />} onClick={() => {
                         if (mapRef.current) {
                             if (record.type === 'circle') {

@@ -192,7 +192,7 @@ export const TeamTab: React.FC<TeamTabProps> = ({
             width: 110,
             render: (role: string) => (
                 <Tag color={roleColor[role] ?? "default"} style={{ fontWeight: 600 }}>
-                    {role?.toUpperCase()}
+                    {role === "admin" ? "MANAGER" : role?.toUpperCase()}
                 </Tag>
             ),
         },
@@ -213,8 +213,9 @@ export const TeamTab: React.FC<TeamTabProps> = ({
                     title: "Actions",
                     key: "actions",
                     width: 130,
+                    align: "right" as const,
                     render: (_: any, record: any) => (
-                        <Space size="small">
+                        <Space size="small" style={{ width: '100%', justifyContent: 'flex-end' }}>
                             <Button
                                 size="small"
                                 icon={<EditOutlined />}
@@ -356,7 +357,7 @@ export const TeamTab: React.FC<TeamTabProps> = ({
                     >
                         <Select>
                             <Option value="admin">
-                                <Tag color="red">admin</Tag>
+                                <Tag color="red">Manager</Tag>
                             </Option>
                             <Option value="operator">
                                 <Tag color="blue">operator</Tag>
@@ -405,7 +406,7 @@ export const TeamTab: React.FC<TeamTabProps> = ({
                     >
                         <Select>
                             <Option value="admin">
-                                <Tag color="red">admin</Tag>
+                                <Tag color="red">Manager</Tag>
                             </Option>
                             <Option value="operator">
                                 <Tag color="blue">operator</Tag>

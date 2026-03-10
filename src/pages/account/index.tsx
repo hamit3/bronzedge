@@ -124,7 +124,7 @@ export const AccountPage: React.FC = () => {
                     {" My Profile"}
                 </span>
             ),
-            children: <ProfileTab currentRole={currentRole} />,
+            children: <ProfileTab />,
         },
     ];
 
@@ -133,16 +133,7 @@ export const AccountPage: React.FC = () => {
             <PageHeader 
                 title="Account Management" 
                 subtitle="Manage your organizations, team members, devices, and personal settings."
-                extra={
-                    currentRole && (
-                        <Tag
-                            color={roleColor[currentRole] ?? "default"}
-                            style={{ fontWeight: 700, fontSize: 11, padding: '4px 12px', borderRadius: '4px', border: 'none' }}
-                        >
-                            {currentRole.toUpperCase()}
-                        </Tag>
-                    )
-                }
+                extra={null}
             />
 
             <div className="account-card">

@@ -304,8 +304,9 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({
                     title: "Actions",
                     key: "actions",
                     width: 140,
+                    align: "right" as const,
                     render: (_: any, record: any) => (
-                        <Space size="small">
+                        <Space size="small" style={{ width: '100%', justifyContent: 'flex-end' }}>
                             <Tooltip title="Edit">
                                 <Button
                                     size="small"
@@ -318,14 +319,19 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({
                                     }}
                                 />
                             </Tooltip>
-                            <Tooltip title={record.is_active ? "Deactivate" : "Activate"}>
-                                <Switch
-                                    size="small"
-                                    checked={record.is_active}
-                                    onChange={() => handleToggleActive(record)}
-                                    style={{ minWidth: 32 }}
-                                />
-                            </Tooltip>
+                            <Button
+                                size="small"
+                                onClick={() => handleToggleActive(record)}
+                                style={{
+                                    background: record.is_active ? "rgba(255,255,255,0.05)" : "rgba(82,196,26,0.12)",
+                                    borderColor: record.is_active ? "rgba(255,255,255,0.1)" : "rgba(82,196,26,0.3)",
+                                    color: record.is_active ? "rgba(255,255,255,0.45)" : "#52c41a",
+                                    fontSize: 10,
+                                    height: 24,
+                                }}
+                            >
+                                {record.is_active ? "Deactivate" : "Activate"}
+                            </Button>
                             {isAdmin && (
                                 <Popconfirm
                                     title="Delete this device?"

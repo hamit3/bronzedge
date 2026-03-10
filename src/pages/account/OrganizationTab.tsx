@@ -102,7 +102,7 @@ export const OrganizationTab: React.FC = () => {
                 const newOrgId = (data as any)?.id as string;
                 open?.({
                     type: "success",
-                    message: `Organization "${values.name}" created! You are now the admin.`,
+                    message: `Organization "${values.name}" created! You now have full access.`,
                 });
                 if (newOrgId) setActiveOrgId(newOrgId);
                 createForm.resetFields();
@@ -208,17 +208,6 @@ export const OrganizationTab: React.FC = () => {
             ),
         },
         {
-            title: "Your Role",
-            dataIndex: "role",
-            key: "role",
-            width: 110,
-            render: (role: string) => (
-                <Tag color={roleColor[role] ?? "default"} style={{ fontWeight: 600 }}>
-                    {role?.toUpperCase()}
-                </Tag>
-            ),
-        },
-        {
             title: "Created",
             dataIndex: "created_at",
             key: "created_at",
@@ -233,31 +222,9 @@ export const OrganizationTab: React.FC = () => {
             title: "Actions",
             key: "actions",
             width: 170,
+            align: "right" as const,
             render: (_: any, record: any) => (
-                <Space size="small">
-                    {record.id !== activeOrgId ? (
-                        <Tooltip title="Switch to this organization">
-                            <Button
-                                size="small"
-                                icon={<SwapOutlined />}
-                                onClick={() => {
-                                    setActiveOrgId(record.id);
-                                    open?.({ type: "success", message: `Switched to "${record.name}"` });
-                                }}
-                                style={{
-                                    background: "rgba(82,196,26,0.1)",
-                                    borderColor: "rgba(82,196,26,0.3)",
-                                    color: "#52c41a",
-                                }}
-                            >
-                                Activate
-                            </Button>
-                        </Tooltip>
-                    ) : (
-                        <Tag icon={<CheckCircleOutlined />} color="success" style={{ fontSize: 11 }}>
-                            Active
-                        </Tag>
-                    )}
+                <Space size="small" style={{ width: '100%', justifyContent: 'flex-end' }}>
                     {record.role === "admin" && (
                         <Tooltip title="Rename organization">
                             <Button
@@ -375,7 +342,7 @@ export const OrganizationTab: React.FC = () => {
                 styles={{ body: { paddingTop: 16 } }}
             >
                 <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 16 }}>
-                    You will automatically become the admin of the new organization.
+                    You will automatically have full access to the new organization.
                 </Text>
                 <Form form={createForm} layout="vertical">
                     <Form.Item

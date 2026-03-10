@@ -119,8 +119,9 @@ export const RulesTab = () => {
                     {
                         title: "Actions",
                         dataIndex: "actions",
+                        align: "right" as const,
                         render: (_, record) => (
-                            <Space>
+                            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
                                 <Button
                                     icon={<EditOutlined />}
                                     onClick={() => handleEditClick(record)}
