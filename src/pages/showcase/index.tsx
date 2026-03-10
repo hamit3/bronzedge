@@ -15,7 +15,9 @@ import {
     DatabaseOutlined,
     FileSearchOutlined,
     SyncOutlined,
-    GlobalOutlined
+    GlobalOutlined,
+    ArrowUpOutlined,
+    ArrowDownOutlined
 } from "@ant-design/icons";
 import {
     XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip,
@@ -100,7 +102,11 @@ export const ShowcasePage: React.FC = () => {
     const statusQuery = useList({
         resource: "device_status",
         filters: [
-            { field: "device_id", operator: "in", value: deviceIds.length > 0 ? deviceIds : ["0"] }
+            {
+                field: "device_id",
+                operator: selectedDeviceId ? "eq" : "in",
+                value: selectedDeviceId ? selectedDeviceId : (deviceIds.length > 0 ? deviceIds : ["0"])
+            }
         ],
         pagination: { pageSize: 200 },
         queryOptions: { enabled: deviceIds.length > 0 },
@@ -160,6 +166,16 @@ export const ShowcasePage: React.FC = () => {
     const gnssData = gnssQuery.query?.data?.data ?? [];
     const gnssLoading = gnssQuery.query?.isLoading;
 
+    const flipQuery = useList({
+        resource: "flip_readings",
+        filters,
+        pagination: { pageSize: 500 },
+        sorters: [{ field: "ts", order: "desc" }],
+        queryOptions: { enabled: !devicesLoading && !!activeOrgId },
+    });
+    const flipData = flipQuery.query?.data?.data ?? [];
+    const flipLoading = flipQuery.query?.isLoading;
+
 
 
     const handleRefresh = async () => {
@@ -171,6 +187,7 @@ export const ShowcasePage: React.FC = () => {
             invalidate({ resource: "rsrp_readings", invalidates: ["list"] }),
             invalidate({ resource: "device_alerts", invalidates: ["list"] }),
             invalidate({ resource: "gnss_readings", invalidates: ["list"] }),
+            invalidate({ resource: "flip_readings", invalidates: ["list"] }),
             invalidate({ resource: "device_logs", invalidates: ["list"] }),
             invalidate({ resource: "raw_messages", invalidates: ["list"] }),
         ]);
@@ -202,8 +219,45 @@ export const ShowcasePage: React.FC = () => {
         }));
     }, [gnssData]);
 
+    const activityChartData = useMemo(() => {
+        return [...flipData].reverse().map((item: any) => ({
+            time: dayjs(item.ts).format("HH:mm"),
+            activeValue: item.orientation === "UPSIDE_DOWN" ? 1 : 0,
+            status: item.orientation === "UPSIDE_DOWN" ? "Active" : "Idle"
+        }));
+    }, [flipData]);
+
+    const activeTimeStr = useMemo(() => {
+        if (flipData.length === 0) return "--";
+        let activeSeconds = 0;
+        // flipData sorted desc by ts. previous element is older.
+        for (let i = 0; i < flipData.length - 1; i++) {
+            const current = flipData[i];    // newer
+            const older = flipData[i + 1];    // older
+            if (older.orientation === "UPSIDE_DOWN") {
+                const diff = dayjs(current.ts).diff(dayjs(older.ts), 'second');
+                if (diff > 0 && diff < 3600) {
+                    activeSeconds += diff;
+                }
+            }
+        }
+        if (activeSeconds === 0) return "0m";
+        if (activeSeconds < 60) return `${Math.floor(activeSeconds)}s`;
+        const mins = Math.floor(activeSeconds / 60);
+        const hrs = Math.floor(mins / 60);
+        if (hrs > 0) return `${hrs}h ${mins % 60}m`;
+        return `${mins}m`;
+    }, [flipData]);
+
     const latestTemp = tempData[0]?.celsius ?? "--";
+    const previousTemp = tempData[1]?.celsius;
+    const tempTrendStr = previousTemp != null && latestTemp !== "--" ? (parseFloat(latestTemp) - parseFloat(previousTemp)).toFixed(1) : "0.0";
+    const tempTrend = parseFloat(tempTrendStr);
+
     const latestRsrp = rsrpData[0]?.rsrp ?? "--";
+    const previousRsrp = rsrpData[1]?.rsrp;
+    const rsrpTrendStr = previousRsrp != null && latestRsrp !== "--" ? (parseFloat(latestRsrp) - parseFloat(previousRsrp)).toFixed(1) : "0.0";
+    const rsrpTrend = parseFloat(rsrpTrendStr);
 
     // --- Table hooks ---
     const { tableProps: logsTableProps } = useTable({
@@ -283,240 +337,186 @@ export const ShowcasePage: React.FC = () => {
 
                 {/* KPI Cards */}
                 <Row gutter={[16, 16]}>
-                    <Col xs={24} sm={12} md={6}>
-                        <Card variant="borderless" className="dashboard-card">
-                            <Statistic
-                                title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Latest Temperature</span>}
-                                value={latestTemp}
-                                precision={typeof latestTemp === 'number' ? 1 : 0}
-                                suffix={typeof latestTemp === 'number' ? "°C" : ""}
-                                prefix={<AimOutlined style={{ color: "#f88601" }} />}
-                                valueStyle={{ color: "#fff" }}
-                                loading={tempLoading}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                        <Card variant="borderless" className="dashboard-card">
-                            <Statistic
-                                title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Signal Strength (RSRP)</span>}
-                                value={latestRsrp}
-                                suffix={typeof latestRsrp === 'number' ? " dBm" : ""}
-                                prefix={<SignalFilled style={{ color: "#1890ff" }} />}
-                                valueStyle={{ color: "#fff" }}
-                                loading={rsrpLoading}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                        <Card variant="borderless" className="dashboard-card">
-                            <Statistic
-                                title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Total Alerts</span>}
-                                value={alertCount}
-                                prefix={<AlertOutlined style={{ color: alertCount > 0 ? "#ff4d4f" : "#52c41a" }} />}
-                                valueStyle={{ color: "#fff" }}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                        <Card variant="borderless" className="dashboard-card">
-                            <Statistic
-                                title={<span style={{ color: "rgba(255,255,255,0.45)" }}>Active Devices (Org)</span>}
-                                value={devicesLoading ? "--" : deviceIds.length}
-                                suffix={devicesLoading ? "" : " Nodes"}
-                                prefix={<DeploymentUnitOutlined style={{ color: "#52c41a" }} />}
-                                valueStyle={{ color: "#52c41a" }}
-                                loading={devicesLoading}
-                            />
-                        </Card>
-                    </Col>
-                </Row>
+                    <Col xs={24} lg={6}>
+                        <Card variant="borderless" className="dashboard-card" bodyStyle={{ padding: "16px", height: 160, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 500, letterSpacing: '0.5px' }}>
+                                        LATEST TEMPERATURE
+                                    </Text>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
+                                        <div style={{ fontSize: 24, fontWeight: 600, color: "#fff", lineHeight: 1 }}>
+                                            {typeof latestTemp === 'number' ? latestTemp.toFixed(1) : latestTemp}
+                                            <span style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", marginLeft: 2 }}>°C</span>
+                                        </div>
+                                        {tempTrend !== 0 && (
+                                            <Tag color={tempTrend > 0 ? "error" : "success"} style={{ border: 0, margin: 0, padding: '0 6px', fontWeight: 600, fontSize: 11 }}>
+                                                {tempTrend > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {Math.abs(tempTrend)}°C
+                                            </Tag>
+                                        )}
+                                    </div>
+                                </div>
+                                <div style={{
+                                    width: 40, height: 40, borderRadius: 10, background: 'rgba(248,134,1,0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                }}>
+                                    <AimOutlined style={{ fontSize: 20, color: "#f88601" }} />
+                                </div>
+                            </div>
 
-                {/* Charts */}
-                <Row gutter={[16, 16]}>
-                    <Col xs={24} lg={12}>
-                        <Card
-                            title={<span style={{ color: "#fff" }}>Temperature History <Tag color="orange">{tempData.length} readings</Tag></span>}
-                            variant="borderless" className="shadow-premium"
-                        >
-                            <div style={{ height: 300 }}>
-                                {tempLoading ? (
-                                    <div style={centeredStyle}><Spin size="large" /></div>
-                                ) : (chartData && chartData.length > 0) ? (
+                            <div style={{ height: 60, width: '100%', marginTop: 'auto' }}>
+                                {tempLoading ? <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spin size="small" /></div> : chartData && chartData.length > 0 ? (
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={chartData}>
+                                        <AreaChart data={chartData.slice(-20)}>
                                             <defs>
-                                                <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#f88601" stopOpacity={0.3} />
+                                                <linearGradient id="colorTempMini" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#f88601" stopOpacity={0.4} />
                                                     <stop offset="95%" stopColor="#f88601" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" vertical={false} />
-                                            <XAxis dataKey="time" stroke="#718096" fontSize={10} />
-                                            <YAxis stroke="#718096" fontSize={10} domain={['auto', 'auto']} />
-                                            <ChartTooltip
-                                                contentStyle={{ background: "#1d1d1d", border: "1px solid rgba(255,255,255,0.1)" }}
-                                                labelFormatter={(_: any, items: readonly any[]) => items[0]?.payload?.fullTime ?? ""}
-                                                itemStyle={{ color: "#f88601" }}
-                                            />
-                                            <Area type="monotone" dataKey="temp" name="°C" stroke="#f88601" fillOpacity={1} fill="url(#colorTemp)" />
+                                            <Area type="monotone" dataKey="temp" stroke="#f88601" strokeWidth={2} fillOpacity={1} fill="url(#colorTempMini)" />
                                         </AreaChart>
                                     </ResponsiveContainer>
-                                ) : (
-                                    <div style={centeredStyle}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No temperature data." /></div>
-                                )}
+                                ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={false} />}
                             </div>
                         </Card>
                     </Col>
-                    <Col xs={24} lg={12}>
-                        <Card
-                            title={<span style={{ color: "#fff" }}>RSRP Signal <Tag color="blue">{rsrpData.length} readings</Tag></span>}
-                            variant="borderless" className="shadow-premium"
-                        >
-                            <div style={{ height: 300 }}>
-                                {rsrpLoading ? (
-                                    <div style={centeredStyle}><Spin size="large" /></div>
-                                ) : (signalChartData && signalChartData.length > 0) ? (
+
+                    <Col xs={24} lg={6}>
+                        <Card variant="borderless" className="dashboard-card" bodyStyle={{ padding: "16px", height: 160, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 500, letterSpacing: '0.5px' }}>
+                                        SIGNAL STRENGTH (RSRP)
+                                    </Text>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
+                                        <div style={{ fontSize: 24, fontWeight: 600, color: "#fff", lineHeight: 1 }}>
+                                            {latestRsrp}
+                                            <span style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", marginLeft: 2 }}>dBm</span>
+                                        </div>
+                                        {rsrpTrend !== 0 && (
+                                            <Tag color={rsrpTrend > 0 ? "success" : "error"} style={{ border: 0, margin: 0, padding: '0 6px', fontWeight: 600, fontSize: 11 }}>
+                                                {rsrpTrend > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {Math.abs(rsrpTrend)}
+                                            </Tag>
+                                        )}
+                                    </div>
+                                </div>
+                                <div style={{
+                                    width: 40, height: 40, borderRadius: 10, background: 'rgba(24,144,255,0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                }}>
+                                    <SignalFilled style={{ fontSize: 20, color: "#1890ff" }} />
+                                </div>
+                            </div>
+
+                            <div style={{ height: 60, width: '100%', marginTop: 'auto' }}>
+                                {rsrpLoading ? <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spin size="small" /></div> : signalChartData && signalChartData.length > 0 ? (
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={signalChartData}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" vertical={false} />
-                                            <XAxis dataKey="time" stroke="#718096" fontSize={10} />
-                                            <YAxis stroke="#718096" fontSize={10} reversed domain={[0, 130]} />
-                                            <ChartTooltip
-                                                contentStyle={{ background: "#1d1d1d", border: "1px solid rgba(255,255,255,0.1)" }}
-                                                formatter={(_: any, __: any, props: any) => [`${props.payload.raw} dBm`, "RSRP"]}
-                                            />
-                                            <Bar dataKey="signal" name="RSRP" fill="#1890ff" radius={[4, 4, 0, 0]} />
+                                        <BarChart data={signalChartData.slice(-20)}>
+                                            <Bar dataKey="signal" fill="#1890ff" radius={[2, 2, 0, 0]} />
                                         </BarChart>
                                     </ResponsiveContainer>
-                                ) : (
-                                    <div style={centeredStyle}><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No RSRP data." /></div>
-                                )}
+                                ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={false} />}
                             </div>
                         </Card>
                     </Col>
-                </Row>
 
-                {/* GNSS */}
-                <Card
-                    title={
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                            <span style={{ color: "#fff" }}>
-                                <GlobalOutlined /> GNSS Trajectory <Tag color="orange">{gnssData.length} points</Tag>
-                            </span>
-                            <Segmented
-                                value={mapView}
-                                onChange={(v) => setMapView(v as 'chart' | 'googlemaps')}
-                                options={[
-                                    { label: '📈 Chart', value: 'chart' },
-                                    { label: '🗺️ Google Maps', value: 'googlemaps' },
-                                ]}
-                                style={{ background: 'rgba(255,255,255,0.06)' }}
-                            />
-                        </div>
-                    }
-                    variant="borderless" className="shadow-premium"
-                >
-                    <Row gutter={24}>
-                        <Col xs={24} lg={16}>
-                            <div style={{ height: 380, borderRadius: 8, overflow: 'hidden' }}>
-                                {gnssLoading ? (
-                                    <div style={centeredStyle}><Spin /></div>
-                                ) : (!mapData || mapData.length === 0) ? (
-                                    <div style={centeredStyle}><Empty description={<span style={{ color: 'rgba(255,255,255,0.4)' }}>No GNSS data.</span>} /></div>
-                                ) : mapView === 'chart' ? (
-                                    <div style={{ height: '100%', background: '#141414', padding: 8, borderRadius: 8 }}>
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <ScatterChart>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" />
-                                                <XAxis type="number" dataKey="x" name="Lng" domain={['auto', 'auto']} hide />
-                                                <YAxis type="number" dataKey="y" name="Lat" domain={['auto', 'auto']} hide />
-                                                <ZAxis type="category" dataKey="name" name="Time" />
-                                                <ChartTooltip contentStyle={{ background: "#1d1d1d", border: "1px solid rgba(255,255,255,0.1)" }} />
-                                                <Scatter data={mapData} fill="#f88601" line={{ stroke: '#f88601', strokeWidth: 1.5, strokeDasharray: '4 2' }} />
-                                            </ScatterChart>
-                                        </ResponsiveContainer>
+                    <Col xs={24} lg={6}>
+                        <Card variant="borderless" className="dashboard-card" bodyStyle={{ padding: "16px", height: 160, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 500, letterSpacing: '0.5px' }}>
+                                        ACTIVE TIME (24H)
+                                    </Text>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '6px' }}>
+                                        <div style={{ fontSize: 24, fontWeight: 600, color: "#fff", lineHeight: 1 }}>
+                                            {activeTimeStr}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{
+                                    width: 40, height: 40, borderRadius: 10, background: 'rgba(82,196,26,0.1)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                                }}>
+                                    <ClockCircleOutlined style={{ fontSize: 20, color: "#52c41a" }} />
+                                </div>
+                            </div>
+
+                            <div style={{ height: 60, width: '100%', marginTop: 'auto' }}>
+                                {flipLoading ? <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Spin size="small" /></div> : activityChartData && activityChartData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={activityChartData.slice(-40)}>
+                                            <defs>
+                                                <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#52c41a" stopOpacity={0.4} />
+                                                    <stop offset="95%" stopColor="#52c41a" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <Area type="step" dataKey="activeValue" stroke="#52c41a" strokeWidth={2} fillOpacity={1} fill="url(#colorActivity)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={false} />}
+                            </div>
+                        </Card>
+                    </Col>
+
+                    <Col xs={24} lg={6}>
+                        <Card variant="borderless" className="dashboard-card" bodyStyle={{ padding: 0, height: 160, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ position: 'relative', height: 160, width: '100%', borderRadius: 8, overflow: 'hidden' }}>
+                                {/* Floating Title Overlay */}
+                                <div style={{
+                                    position: 'absolute', top: 12, left: 12, zIndex: 10,
+                                    background: 'rgba(0,0,0,0.6)', padding: '6px 10px', borderRadius: 6,
+                                    backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.08)',
+                                    display: 'flex', alignItems: 'center', gap: 6
+                                }}>
+                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#52c41a', boxShadow: '0 0 8px #52c41a' }} />
+                                    <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 11, fontWeight: 600, letterSpacing: '0.5px' }}>
+                                        LAST POSITION
+                                    </Text>
+                                </div>
+
+                                {gnssLoading ? <Spin size="small" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} /> : (!mapData || mapData.length === 0) ? (
+                                    <div style={{ height: '100%', width: '100%', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Text style={{ color: 'rgba(255,255,255,0.2)' }}><AimOutlined /> No GPS Data</Text>
                                     </div>
                                 ) : !mapsLoaded ? (
-                                    <div style={{ ...centeredStyle, flexDirection: 'column', gap: 12 }}>
-                                        <Spin />
-                                        <Text style={{ color: 'rgba(255,255,255,0.45)' }}>Loading Google Maps...</Text>
-                                    </div>
-                                ) : !GOOGLE_MAPS_API_KEY ? (
-                                    <div style={centeredStyle}>
-                                        <Empty description="VITE_GOOGLE_MAPS_API_KEY is not set" />
+                                    <div style={{ height: '100%', width: '100%', background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Spin size="small" />
                                     </div>
                                 ) : (
                                     <GoogleMap
                                         mapContainerStyle={{ width: '100%', height: '100%' }}
-                                        center={{ lat: mapData[0]?.y ?? 0, lng: mapData[0]?.x ?? 0 }}
-                                        zoom={14}
+                                        center={{ lat: mapData[0].y, lng: mapData[0].x }}
+                                        zoom={6}
                                         options={{
                                             mapTypeId: 'roadmap',
-                                            disableDefaultUI: false,
+                                            disableDefaultUI: true,
+                                            draggable: false,
+                                            keyboardShortcuts: false,
+                                            disableDoubleClickZoom: true,
+                                            scrollwheel: false,
                                             styles: darkMapStyles,
                                         }}
                                     >
-                                        {/* Device path polyline */}
-                                        <Polyline
-                                            path={mapData.map(p => ({ lat: p.y, lng: p.x }))}
-                                            options={{
-                                                strokeColor: '#f88601',
-                                                strokeOpacity: 0.9,
-                                                strokeWeight: 3,
-                                                geodesic: true,
+                                        <Marker
+                                            position={{ lat: mapData[0].y, lng: mapData[0].x }}
+                                            icon={{
+                                                path: window.google?.maps?.SymbolPath?.CIRCLE,
+                                                scale: 6,
+                                                fillColor: '#52c41a',
+                                                fillOpacity: 1,
+                                                strokeColor: '#fff',
+                                                strokeWeight: 2,
                                             }}
                                         />
-                                        {/* Individual point markers */}
-                                        {gnssData.map((point: any, idx: number) => (
-                                            <Marker
-                                                key={point.id ?? idx}
-                                                position={{ lat: parseFloat(point.lat), lng: parseFloat(point.lng) }}
-                                                icon={{
-                                                    path: window.google?.maps?.SymbolPath?.CIRCLE,
-                                                    scale: idx === 0 ? 8 : 5,
-                                                    fillColor: idx === 0 ? '#f88601' : '#fff',
-                                                    fillOpacity: 1,
-                                                    strokeColor: '#f88601',
-                                                    strokeWeight: 2,
-                                                }}
-                                                onClick={() => setActiveMarker(idx)}
-                                            >
-                                                {activeMarker === idx && (
-                                                    <InfoWindow onCloseClick={() => setActiveMarker(null)}>
-                                                        <div style={{ color: '#000', fontSize: 12, lineHeight: 1.6 }}>
-                                                            <strong>{dayjs(point.ts).format('HH:mm:ss')}</strong><br />
-                                                            Lat: {parseFloat(point.lat).toFixed(5)}<br />
-                                                            Lng: {parseFloat(point.lng).toFixed(5)}<br />
-                                                            {point.spd != null && <>Speed: {parseFloat(point.spd).toFixed(1)} km/h</>}
-                                                        </div>
-                                                    </InfoWindow>
-                                                )}
-                                            </Marker>
-                                        ))}
                                     </GoogleMap>
                                 )}
                             </div>
-                        </Col>
-                        <Col xs={24} lg={8}>
-                            <Text style={{ color: 'rgba(255,255,255,0.65)', fontWeight: 600 }}>Latest Coordinates</Text>
-                            <Table
-                                dataSource={gnssData as any[]}
-                                loading={gnssLoading}
-                                pagination={{ pageSize: 8, simple: true }}
-                                size="small"
-                                rowKey="id"
-                                className="industrial-table"
-                                style={{ marginTop: 8 }}
-                                columns={[
-                                    { title: 'Lat', dataIndex: 'lat', render: (v: any) => parseFloat(v).toFixed(5) },
-                                    { title: 'Lng', dataIndex: 'lng', render: (v: any) => parseFloat(v).toFixed(5) },
-                                    { title: 'Time', dataIndex: 'ts', width: 90, render: (v: any) => dayjs(v).format("HH:mm:ss") },
-                                ]}
-                            />
-                        </Col>
-                    </Row>
-                </Card>
+                        </Card>
+                    </Col>
+                </Row>
+
 
                 {/* Logs, Raw, Status Tabs */}
                 <Card variant="borderless" className="shadow-premium">
@@ -568,7 +568,7 @@ export const ShowcasePage: React.FC = () => {
                             children: (
                                 <Table
                                     dataSource={statusData as any[]} loading={statusLoading}
-                                    rowKey="id" size="small" className="industrial-table"
+                                    rowKey="device_id" size="small" className="industrial-table"
                                     columns={[
                                         {
                                             title: "Name",
