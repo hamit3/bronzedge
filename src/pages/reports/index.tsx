@@ -10,6 +10,8 @@ import { deriveSessions } from "./utils";
 import { useOrganization } from "../../contexts/organization";
 import { FlipReading, DeviceMessage } from "./types";
 import { supabaseClient } from "../../providers/supabase-client";
+import { PageHeader } from "../../components/PageHeader";
+import { FilterContainer } from "../../components/FilterContainer";
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -104,89 +106,59 @@ export const ReportList: React.FC = () => {
     };
 
     return (
-        <List title={<Title level={3} style={{ margin: 0 }}>Equipment Reports</Title>}>
-            <ConfigProvider
-                theme={{
-                    algorithm: theme.darkAlgorithm,
-                    token: {
-                        colorPrimary: '#f88601',
-                        borderRadius: 8,
-                    },
-                    components: {
-                        Segmented: {
-                            itemSelectedBg: '#f88601',
-                            itemSelectedColor: '#fff',
-                            trackBg: 'rgba(255,255,255,0.04)',
-                            itemActiveBg: 'rgba(248,134,1,0.2)',
-                        },
-                        Select: {
-                            optionSelectedBg: 'rgba(248,134,1,0.15)',
-                        }
-                    }
-                }}
-            >
-                <div
-                    style={{
-                        background: "rgba(20, 20, 20, 0.9)",
-                        backdropFilter: "blur(16px)",
-                        padding: "16px 20px",
-                        borderRadius: "14px",
-                        border: "1px solid rgba(248, 134, 1, 0.2)",
-                        boxShadow: "0 12px 40px rgba(0, 0, 0, 0.6)",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "16px",
-                        flexWrap: "wrap",
-                        marginBottom: 24,
-                    }}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '4px' }}>
-                        <FilterOutlined style={{ color: '#f88601', fontSize: '18px' }} />
-                        <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Report Filters</span>
+        <div style={{ padding: "24px", minHeight: "100vh" }}>
+            <PageHeader 
+                title="Equipment Reports" 
+                subtitle={`Analyze fleet activity and performance — ${new Date().toLocaleString('tr-TR')}`} 
+            />
+
+            <FilterContainer 
+                title="Report Filters"
+                extra={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                        <Segmented
+                            options={[
+                                { label: '24h', value: '24h' },
+                                { label: '7D', value: '7d' },
+                                { label: '30D', value: '30d' },
+                                { label: '90D', value: '90d' },
+                                { label: 'All', value: 'all' },
+                                { label: 'Cust', value: 'custom', disabled: true },
+                            ]}
+                            value={quickFilter}
+                            onChange={(value: string | number) => handleQuickFilter(value as string)}
+                            className="premium-segmented"
+                        />
+                        <RangePicker
+                            onChange={handleDateChange}
+                            value={dateRange}
+                            showTime
+                            format="YYYY-MM-DD HH:mm"
+                            style={{
+                                width: 320,
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid rgba(255,255,255,0.1)'
+                            }}
+                            disabled={quickFilter === "all"}
+                        />
                     </div>
-
-                    <Select
-                        placeholder="Select device"
-                        style={{ width: 250 }}
-                        onChange={handleDeviceChange}
-                        loading={isLoadingDevices}
-                        value={selectedDevice?.id}
-                        dropdownStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
-                    >
-                        {devices.map((d: any) => (
-                            <Option key={d.id} value={d.id}>
-                                {d.name || d.device_id}
-                            </Option>
-                        ))}
-                    </Select>
-
-                    <Segmented
-                        options={[
-                            { label: '24h', value: '24h' },
-                            { label: '7D', value: '7d' },
-                            { label: '30D', value: '30d' },
-                            { label: '90D', value: '90d' },
-                            { label: 'All', value: 'all' },
-                            { label: 'Cust', value: 'custom', disabled: true },
-                        ]}
-                        value={quickFilter}
-                        onChange={(value: string | number) => handleQuickFilter(value as string)}
-                        className="premium-segmented"
-                    />
-                    <RangePicker
-                        onChange={handleDateChange}
-                        value={dateRange}
-                        showTime
-                        format="YYYY-MM-DD HH:mm"
-                        style={{
-                            width: 320,
-                            background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.1)'
-                        }}
-                        disabled={quickFilter === "all"}
-                    />
-                </div>
-            </ConfigProvider>
+                }
+            >
+                <Select
+                    placeholder="Select device"
+                    style={{ width: 250 }}
+                    onChange={handleDeviceChange}
+                    loading={isLoadingDevices}
+                    value={selectedDevice?.id}
+                    dropdownStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
+                    {devices.map((d: any) => (
+                        <Option key={d.id} value={d.id}>
+                            {d.name || d.device_id}
+                        </Option>
+                    ))}
+                </Select>
+            </FilterContainer>
 
             {selectedDevice && (
                 <div style={{ marginBottom: 16 }}>
@@ -267,6 +239,6 @@ export const ReportList: React.FC = () => {
             background: rgba(248,134,1,0.04) !important;
         }
       `}</style>
-        </List>
+        </div>
     );
 };

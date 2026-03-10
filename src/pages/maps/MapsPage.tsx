@@ -7,6 +7,7 @@ import { MapFilters } from "./MapFilters";
 import { Grid, Empty, Spin } from "antd";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
+import { PageHeader } from "../../components/PageHeader";
 
 const { useBreakpoint } = Grid;
 
@@ -187,11 +188,14 @@ export const MapsPage: React.FC = () => {
     }, [lastLocation]);
 
     return (
-        <div style={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", background: "#0b0e14", overflow: "hidden" }}>
+        <div style={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", background: "#0b0e14", overflow: "hidden", padding: "24px" }}>
+            <PageHeader 
+                title="Maps" 
+                subtitle={`Live location of your fleet — ${new Date().toLocaleString('tr-TR')}`} 
+            />
 
             <div style={{
-                padding: "16px 20px",
-                background: "#0b0e14",
+                marginBottom: "24px",
                 zIndex: 10,
                 display: "block",
             }}>

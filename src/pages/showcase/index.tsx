@@ -26,6 +26,8 @@ import {
 import { GoogleMap, useJsApiLoader, Polyline, Marker, InfoWindow } from '@react-google-maps/api';
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { PageHeader } from "../../components/PageHeader";
+import { FilterContainer } from "../../components/FilterContainer";
 
 dayjs.extend(relativeTime);
 
@@ -277,16 +279,14 @@ export const ShowcasePage: React.FC = () => {
         <div style={{ padding: "24px", minHeight: "100vh" }}>
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
 
-                {/* Header */}
-                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                    <div>
-                        <Title level={2} style={{ color: "#f88601", margin: 0 }}>
-                            Monitoring
-                        </Title>
-                        <Text type="secondary">
-                            Live telemetry from your devices — {new Date().toLocaleString('tr-TR')}
-                        </Text>
-                    </div>
+            <PageHeader 
+                title="Monitoring" 
+                subtitle={`Live telemetry from your devices — ${new Date().toLocaleString('tr-TR')}`} 
+            />
+
+            <FilterContainer 
+                title="Telemetry Pipeline"
+                extra={
                     <Space size="middle">
                         <Select
                             placeholder={devicesLoading ? "Loading devices…" : deviceIds.length === 0 ? "No devices in org" : "Select device"}
@@ -317,7 +317,12 @@ export const ShowcasePage: React.FC = () => {
                             Refresh
                         </Button>
                     </Space>
-                </header>
+                }
+            >
+                <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>
+                    Showing telemetry for the last 7 days
+                </div>
+            </FilterContainer>
 
 
 

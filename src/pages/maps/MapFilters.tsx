@@ -7,8 +7,9 @@ import {
     ConfigProvider,
     theme,
 } from "antd";
-import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 import { Dayjs } from "dayjs";
+import { FilterContainer } from "../../components/FilterContainer";
 
 const { RangePicker } = DatePicker;
 
@@ -34,73 +35,10 @@ export const MapFilters: React.FC<MapFiltersProps> = ({
     setTimeRange,
 }) => {
     return (
-        <ConfigProvider
-            theme={{
-                algorithm: theme.darkAlgorithm,
-                token: {
-                    colorPrimary: '#f88601',
-                    borderRadius: 8,
-                },
-                components: {
-                    Segmented: {
-                        itemSelectedBg: '#f88601',
-                        itemSelectedColor: '#fff',
-                        trackBg: 'rgba(255,255,255,0.04)',
-                        itemActiveBg: 'rgba(248,134,1,0.2)',
-                    },
-                    Input: {
-                        activeBorderColor: '#f88601',
-                        hoverBorderColor: '#f88601',
-                    },
-                    Select: {
-                        optionSelectedBg: 'rgba(248,134,1,0.15)',
-                    }
-                }
-            }}
-        >
-            <div
-                style={{
-                    background: "rgba(20, 20, 20, 0.9)",
-                    backdropFilter: "blur(16px)",
-                    padding: "16px 20px",
-                    borderRadius: "14px",
-                    border: "1px solid rgba(248, 134, 1, 0.2)",
-                    boxShadow: "0 12px 40px rgba(0, 0, 0, 0.6)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: "16px",
-                    flexWrap: "wrap",
-                    width: "100%",
-                }}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '4px' }}>
-                        <FilterOutlined style={{ color: '#f88601', fontSize: '18px' }} />
-                        <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Control Panel</span>
-                    </div>
-
-                    <Input
-                        placeholder="Search devices..."
-                        prefix={<SearchOutlined style={{ color: "rgba(255,255,255,0.25)" }} />}
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        allowClear
-                        style={{ width: '180px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}
-                    />
-
-                    <Segmented
-                        value={statusFilter}
-                        onChange={(v) => setStatusFilter(v as any)}
-                        options={[
-                            { label: "ALL", value: "all" },
-                            { label: "ACTIVE", value: "active" },
-                            { label: "INACTIVE", value: "inactive" },
-                        ]}
-                        className="premium-segmented"
-                    />
-                </div>
-
+        <FilterContainer 
+            title="Control Panel"
+            style={{ marginBottom: 0 }} // Overriding standard bottom margin as it's handled by the parent layout
+            extra={
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                     <Select
                         style={{ width: "130px" }}
@@ -127,21 +65,41 @@ export const MapFilters: React.FC<MapFiltersProps> = ({
                         onChange={(val) => setTimeRange(val as any)}
                     />
                 </div>
+            }
+        >
+            <Input
+                placeholder="Search devices..."
+                prefix={<SearchOutlined style={{ color: "rgba(255,255,255,0.25)" }} />}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                allowClear
+                style={{ width: '180px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)' }}
+            />
 
-                <style>{`
-                    .premium-segmented .ant-segmented-item-label {
-                        font-weight: 700;
-                        font-size: 11px;
-                        padding: 0 16px;
-                    }
-                    .premium-segmented.ant-segmented {
-                        padding: 3px;
-                    }
-                    .ant-segmented-item-selected {
-                        box-shadow: 0 2px 8px rgba(248, 134, 1, 0.4);
-                    }
-                `}</style>
-            </div>
-        </ConfigProvider>
+            <Segmented
+                value={statusFilter}
+                onChange={(v) => setStatusFilter(v as any)}
+                options={[
+                    { label: "ALL", value: "all" },
+                    { label: "ACTIVE", value: "active" },
+                    { label: "INACTIVE", value: "inactive" },
+                ]}
+                className="premium-segmented"
+            />
+
+            <style>{`
+                .premium-segmented .ant-segmented-item-label {
+                    font-weight: 700;
+                    font-size: 11px;
+                    padding: 0 16px;
+                }
+                .premium-segmented.ant-segmented {
+                    padding: 3px;
+                }
+                .ant-segmented-item-selected {
+                    box-shadow: 0 2px 8px rgba(248, 134, 1, 0.4);
+                }
+            `}</style>
+        </FilterContainer>
     );
 };

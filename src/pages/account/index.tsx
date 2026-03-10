@@ -12,6 +12,7 @@ import { DevicesTab } from "./DevicesTab";
 import { ProfileTab } from "./ProfileTab";
 import { GeofencesTab } from "./GeofencesTab";
 import { useOrganization } from "../../contexts/organization";
+import { PageHeader } from "../../components/PageHeader";
 
 const { Title, Text } = Typography;
 
@@ -129,33 +130,20 @@ export const AccountPage: React.FC = () => {
 
     return (
         <div style={{ padding: "24px", minHeight: "100vh" }}>
-            {/* Page header */}
-            <div style={{ marginBottom: 24 }}>
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        flexWrap: "wrap",
-                    }}
-                >
-                    <Title level={2} style={{ color: "#f88601", margin: 0 }}>
-                        Account Management
-                    </Title>
-                    {currentRole && (
+            <PageHeader 
+                title="Account Management" 
+                subtitle="Manage your organizations, team members, devices, and personal settings."
+                extra={
+                    currentRole && (
                         <Tag
                             color={roleColor[currentRole] ?? "default"}
-                            style={{ fontWeight: 700, fontSize: 11 }}
+                            style={{ fontWeight: 700, fontSize: 11, padding: '4px 12px', borderRadius: '4px', border: 'none' }}
                         >
                             {currentRole.toUpperCase()}
                         </Tag>
-                    )}
-                </div>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                    Manage your organizations, team members, devices, and personal
-                    settings.
-                </Text>
-            </div>
+                    )
+                }
+            />
 
             <div className="account-card">
                 <Tabs

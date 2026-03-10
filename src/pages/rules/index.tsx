@@ -2,14 +2,15 @@ import React from "react";
 import { Card, Typography } from "antd";
 import { RulesTab } from "./RulesTab";
 
-const { Title } = Typography;
+import { PageHeader } from "../../components/PageHeader";
 
 export const RulesPage = () => {
     return (
         <div style={{ padding: "24px", minHeight: "100vh" }}>
-            <Title level={2} style={{ color: "#f88601", marginBottom: 24 }}>
-                Rules Engine
-            </Title>
+            <PageHeader 
+                title="Rules Engine" 
+                subtitle={`Configure automation and alert triggers — ${new Date().toLocaleString('tr-TR')}`} 
+            />
             <Card variant="borderless" className="shadow-premium">
                 <RulesTab />
             </Card>
