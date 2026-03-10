@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useGetIdentity, useList, useLogout, useMenu } from "@refinedev/core";
+import dayjs from "dayjs";
 import {
   Layout,
   Avatar,
@@ -128,6 +129,31 @@ export const Header: React.FC = () => {
       onClick: () => navigate("/account"),
     },
   ];
+
+  // Fetch alerts for last 24h for active organization's devices
+  const { query: orgDevicesQuery } = useList({
+    resource: "devices",
+    filters: activeOrgId ? [{ field: "organization_id", operator: "eq", value: activeOrgId }] : [],
+    pagination: { pageSize: 500 },
+    queryOptions: { enabled: !!activeOrgId },
+  });
+
+  const orgDevices = (orgDevicesQuery.data?.data || []) as any[];
+  const orgDeviceIds = orgDevices.map((d: any) => d.device_id).filter(Boolean);
+
+  const { query: alertsQuery } = useList({
+    resource: "device_alerts",
+    filters: [
+      { field: "ts", operator: "gte", value: dayjs().subtract(24, "hour").toISOString() },
+      ...(orgDeviceIds.length > 0
+        ? [{ field: "device_id", operator: "in", value: orgDeviceIds }]
+        : [{ field: "device_id", operator: "eq", value: "none" }])
+    ] as any,
+    pagination: { pageSize: 1 }, // We only need the total count
+    queryOptions: { enabled: orgDeviceIds.length > 0 },
+  });
+
+  const activeAlertsCount = alertsQuery.data?.total || 0;
 
   // Search handler
   const handleSearch = (value: string) => {
@@ -298,22 +324,24 @@ export const Header: React.FC = () => {
         </Tooltip>
 
         {/* Notifications */}
-        <Badge count={3} size="small" offset={[-2, 4]} color={token.colorPrimary}>
-          <Tooltip title="Alerts">
-            <div
-              style={{
-                padding: "4px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <BellOutlined
-                style={{ fontSize: "16px", color: token.colorTextSecondary }}
-              />
-            </div>
-          </Tooltip>
-        </Badge>
+        <div onClick={() => navigate("/alerts")}>
+          <Badge count={activeAlertsCount} size="small" offset={[-2, 4]} color={token.colorPrimary}>
+            <Tooltip title="Alerts (Last 24h)">
+              <div
+                style={{
+                  padding: "4px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <BellOutlined
+                  style={{ fontSize: "16px", color: token.colorTextSecondary }}
+                />
+              </div>
+            </Tooltip>
+          </Badge>
+        </div>
 
         {/* User Profile */}
         <Dropdown

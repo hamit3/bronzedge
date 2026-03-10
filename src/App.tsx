@@ -24,9 +24,11 @@ import {
   FileTextOutlined,
   UserOutlined,
   EnvironmentOutlined,
+  BellOutlined,
 } from "@ant-design/icons";
 
 import { ReportList } from "./pages/reports";
+import { AlertsPage } from "./pages/alerts";
 import { Header } from "./components/header";
 import { ErrorPage } from "./pages/error";
 import { ShowcasePage } from "./pages/showcase";
@@ -115,7 +117,15 @@ function App() {
                       list: "/reports",
                       meta: {
                         label: "Reports",
-                        icon: <FileTextOutlined />,
+                        icon: <BarChartOutlined />,
+                      },
+                    },
+                    {
+                      name: "alerts",
+                      list: "/alerts",
+                      meta: {
+                        label: "Alerts",
+                        icon: <BellOutlined />,
                       },
                     },
                     {
@@ -231,6 +241,7 @@ function App() {
                       <Route path="/monitoring" element={<ShowcasePage />} />
                       <Route path="/maps" element={<MapsPage />} />
                       <Route path="/reports" element={<ReportList />} />
+                      <Route path="/alerts" element={<AlertsPage />} />
                       <Route path="/account" element={<AccountPage />} />
                     </Route>
                     <Route
