@@ -20,7 +20,16 @@ async function logDemoVisitor() {
         const nav = navigator as any;
         const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
 
+        // Get or generate a persistent visitor ID
+        let visitorId = localStorage.getItem("bronzedge_visitor_id");
+        if (!visitorId) {
+            // Use crypto.randomUUID if available, else fallback to a timestamp-based ID
+            visitorId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `v-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            localStorage.setItem("bronzedge_visitor_id", visitorId);
+        }
+
         const payload = {
+            visitor_id: visitorId,
             user_agent: navigator.userAgent || null,
             language: navigator.language || null,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,

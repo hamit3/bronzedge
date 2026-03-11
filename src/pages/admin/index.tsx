@@ -358,6 +358,19 @@ const DemoVisitorsManager: React.FC = () => {
 
   const columns = [
     {
+      title: "Visitor ID",
+      dataIndex: "visitor_id",
+      key: "visitor_id",
+      width: 100,
+      render: (v: string) => (
+        <Tooltip title={v}>
+          <Text style={{ color: "#f88601", fontSize: 10, fontFamily: "monospace" }}>
+            {v ? v.split("-")[0].toUpperCase() : "—"}
+          </Text>
+        </Tooltip>
+      ),
+    },
+    {
       title: "Date",
       dataIndex: "visited_at",
       key: "visited_at",

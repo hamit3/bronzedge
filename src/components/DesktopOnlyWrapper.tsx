@@ -62,6 +62,20 @@ export const DesktopOnlyWrapper: React.FC<{ children: React.ReactNode }> = ({ ch
           The BronzEdge platform is optimized for professional monitoring and configuration on larger screens. Please use a computer or a device with a wider screen to access the application.
         </Text>
 
+        <Button 
+          type="primary" 
+          size="large" 
+          href="https://bronzedge.com"
+          style={{ 
+            marginBottom: "40px",
+            height: "44px",
+            padding: "0 32px",
+            fontWeight: 600
+          }}
+        >
+          Return to Website
+        </Button>
+
         <div style={{ display: "flex", gap: "12px", alignItems: "center", color: "rgba(255,255,255,0.35)" }}>
            <LaptopOutlined />
            <Text style={{ color: "inherit", fontSize: "12px" }}>Best viewed on 1024px or higher</Text>
