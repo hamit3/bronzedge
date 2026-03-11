@@ -113,10 +113,6 @@ export const EventsPage = () => {
                     background: rgba(255,255,255,0.03) !important;
                     color: rgba(255,255,255,0.45) !important;
                 }
-                .ant-segmented-item-selected {
-                    background: rgba(248,134,1,0.2) !important;
-                    color: #f88601 !important;
-                }
             `}</style>
         </div>
     );

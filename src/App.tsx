@@ -117,18 +117,15 @@ function App() {
               height: 100vh;
               overflow: hidden;
             }
-            /* Make the content area scrollable */
             .ant-layout-content {
               height: 100%;
               overflow-y: auto !important;
               scroll-behavior: smooth;
             }
-            /* Ensure the sider is fixed height and scrollable if items are too many */
             .ant-layout-sider {
               height: 100vh;
               overflow-y: auto;
             }
-            /* Optional: customize scrollbar for premium look */
             .ant-layout-content::-webkit-scrollbar {
               width: 6px;
             }
@@ -142,6 +139,45 @@ function App() {
             .ant-layout-content::-webkit-scrollbar-thumb:hover {
               background: rgba(248, 134, 1, 0.4);
             }
+
+            /* Premium UI Consistency Overrides */
+            .shadow-premium {
+              box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+            }
+            .ant-card.shadow-premium, .account-card.shadow-premium {
+              background: #0d1424 !important;
+              border: 1px solid rgba(255, 255, 255, 0.06) !important;
+              border-radius: 12px !important;
+            }
+            .ant-table {
+              background: transparent !important;
+            }
+            .ant-table-thead > tr > th {
+              background: rgba(255, 255, 255, 0.03) !important;
+              color: rgba(255, 255, 255, 0.45) !important;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+              font-size: 11px !important;
+              text-transform: uppercase !important;
+              letter-spacing: 0.6px !important;
+              padding: 12px 16px !important;
+            }
+            .ant-table-tbody > tr > td {
+              border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            }
+            .ant-table-tbody > tr:hover > td {
+              background: rgba(248, 134, 1, 0.06) !important;
+            }
+            .ant-tabs-tab {
+              color: rgba(255, 255, 255, 0.45) !important;
+            }
+            .ant-tabs-tab-active .ant-tabs-tab-btn {
+              color: #f88601 !important;
+              font-weight: 600 !important;
+            }
+            .ant-tabs-ink-bar {
+              background: #f88601 !important;
+            }
+
             /* Google Maps Control Enhancement */
             .gm-style-mtc > button, 
             .gm-style-mtc ul li,
@@ -151,26 +187,12 @@ function App() {
               padding: 0 12px !important;
               height: 32px !important;
               display: flex !important;
-              align-items: center !important;
-              color: #333 !important; /* Default dark text for the main buttons if they are light */
+              color: #333 !important;
               background-color: #fff !important;
             }
-            /* Specifically target the dropdown menu for Satellite options (Labels etc) */
             .gm-style-mtc ul {
               background-color: #ffffff !important;
               box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
-            }
-            .gm-style-mtc ul li {
-              color: #333 !important;
-              background-color: #ffffff !important;
-              cursor: pointer !important;
-            }
-            .gm-style-mtc ul li:hover {
-              background-color: #f0f0f0 !important;
-            }
-            /* Transition for better feel */
-            .gm-style-mtc > button, .gm-style-mtc ul li {
-              transition: background-color 0.2s ease;
             }
           `}</style>
           <AntdApp>

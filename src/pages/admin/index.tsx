@@ -6,6 +6,7 @@ import {
   useDelete,
   HttpError,
   usePermissions,
+  useInvalidate,
 } from "@refinedev/core";
 import {
   Typography,
@@ -34,6 +35,7 @@ import {
   LogoutOutlined,
   TeamOutlined,
   BarChartOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import { PageHeader } from "../../components/PageHeader";
 import { supabaseClient } from "../../providers/supabase-client";
@@ -91,7 +93,7 @@ export const AdminPanelPage: React.FC = () => {
         subtitle="Manage users, assign roles and mimic accounts."
       />
 
-      <div className="account-card">
+      <div className="account-card shadow-premium">
         <Tabs
           defaultActiveKey="users"
           size="middle"
@@ -117,11 +119,13 @@ export const AdminPanelPage: React.FC = () => {
 
       <style>{`
         .account-card {
-          background: rgba(255,255,255,0.02);
+          background: #0d1424;
           border: 1px solid rgba(255,255,255,0.06);
           border-radius: 8px;
           padding: 24px;
-          box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        .shadow-premium {
+          box-shadow: 0 4px 24px rgba(0,0,0,0.4) !important;
         }
         .account-table .ant-table {
           background: transparent !important;
@@ -174,12 +178,12 @@ const UsersManager: React.FC = () => {
     });
   }, []);
 
-  const { query } = useList({
+  const { result: profilesResult, query: profilesQuery } = useList({
     resource: "profiles",
     pagination: { pageSize: 50 },
   });
-  const data = query.data;
-  const isLoading = query.isLoading;
+  const data = profilesResult;
+  const isLoading = profilesQuery.isLoading;
 
   const { mutate: update } = useUpdate();
 
@@ -346,15 +350,26 @@ const UsersManager: React.FC = () => {
 // --- Demo Visitors ---
 const DemoVisitorsManager: React.FC = () => {
   const { token } = theme.useToken();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const invalidate = useInvalidate();
 
-  const { query } = useList({
+  const { result: visitorsResult, query: visitorsQuery } = useList({
     resource: "demo_visitors",
     pagination: { pageSize: 50 },
     sorters: [{ field: "visited_at", order: "desc" }],
   });
 
-  const visitors = (query.data?.data ?? []) as any[];
-  const isLoading = query.isLoading;
+  const visitors = (visitorsResult?.data ?? []) as any[];
+  const isLoading = visitorsQuery.isLoading;
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await invalidate({
+      resource: "demo_visitors",
+      invalidates: ["list"],
+    });
+    setIsRefreshing(false);
+  };
 
   const columns = [
     {
@@ -486,7 +501,10 @@ const DemoVisitorsManager: React.FC = () => {
         </Space>
         <Button
           size="small"
-          onClick={() => query.refetch()}
+          icon={<SyncOutlined spin={isRefreshing} />}
+          onClick={handleRefresh}
+          loading={isRefreshing}
+          disabled={isRefreshing}
           style={{ background: "rgba(248,134,1,0.1)", borderColor: "rgba(248,134,1,0.3)", color: "#f88601" }}
         >
           Refresh

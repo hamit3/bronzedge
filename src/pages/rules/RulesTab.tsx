@@ -73,6 +73,7 @@ export const RulesTab = () => {
                 {...tableProps}
                 rowKey="id"
                 loading={tableProps.loading}
+                className="premium-dark-table shadow-premium"
                 columns={[
                     {
                         title: "Name",

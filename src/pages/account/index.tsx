@@ -136,7 +136,7 @@ export const AccountPage: React.FC = () => {
                 extra={null}
             />
 
-            <div className="account-card">
+            <div className="account-card shadow-premium">
                 <Tabs
                     defaultActiveKey="organization"
                     items={tabItems}
@@ -147,11 +147,13 @@ export const AccountPage: React.FC = () => {
 
             <style>{`
         .account-card {
-          background: rgba(255,255,255,0.02);
+          background: #0d1424;
           border: 1px solid rgba(255,255,255,0.06);
           border-radius: 8px;
           padding: 24px;
-          box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        .shadow-premium {
+          box-shadow: 0 4px 24px rgba(0,0,0,0.4) !important;
         }
         .account-table .ant-table {
           background: transparent !important;

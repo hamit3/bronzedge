@@ -219,10 +219,12 @@ export const AlertsPage: React.FC = () => {
             </FilterContainer>
 
             <Card
+                variant="borderless"
+                className="shadow-premium"
                 styles={{ body: { padding: 0 } }}
                 style={{
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    background: "rgba(20,20,20,0.4)",
+                    background: "#0d1424",
+                    border: "1px solid rgba(255,255,255,0.06)",
                     overflow: "hidden"
                 }}
             >
@@ -244,6 +246,9 @@ export const AlertsPage: React.FC = () => {
             </Card>
 
             <style>{`
+                .shadow-premium { 
+                    box-shadow: 0 4px 24px rgba(0,0,0,0.3) !important; 
+                }
                 .premium-segmented .ant-segmented-item-label {
                     font-weight: 700;
                     font-size: 11px;
@@ -252,14 +257,11 @@ export const AlertsPage: React.FC = () => {
                 .premium-segmented.ant-segmented {
                     padding: 3px;
                 }
-                .ant-segmented-item-selected {
-                    box-shadow: 0 2px 8px rgba(248, 134, 1, 0.4);
-                }
                 .premium-dark-table .ant-table {
                     background: transparent !important;
                 }
                 .premium-dark-table .ant-table-thead > tr > th {
-                    background: rgba(255,255,255,0.02) !important;
+                    background: rgba(255,255,255,0.04) !important;
                     color: rgba(255,255,255,0.45) !important;
                     border-bottom: 1px solid rgba(255,255,255,0.08) !important;
                     font-size: 11px;
@@ -273,7 +275,7 @@ export const AlertsPage: React.FC = () => {
                     transition: all 0.2s;
                 }
                 .premium-dark-table .ant-table-tbody > tr:hover > td {
-                    background: rgba(248,134,1,0.04) !important;
+                    background: rgba(248,134,1,0.06) !important;
                 }
                 .premium-dark-table .ant-table-pagination {
                     padding: 16px !important;
