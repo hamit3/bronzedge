@@ -9,8 +9,6 @@ import {
 } from "@refinedev/core";
 import {
   Typography,
-  Card,
-  Tabs,
   Table,
   Button,
   Space,
@@ -32,6 +30,7 @@ import {
   EyeOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
+import { PageHeader } from "../../components/PageHeader";
 
 const { Text, Title } = Typography;
 
@@ -80,46 +79,43 @@ export const AdminPanelPage: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
-      <div style={{ marginBottom: 32 }}>
-        <Title level={2} style={{ margin: 0, color: token.colorPrimary }}>
-          Admin Control Center
-        </Title>
-        <Text type="secondary" style={{ fontSize: 16 }}>
-          Advanced management for users, organizations, and teams.
-        </Text>
+    <div style={{ padding: "24px", minHeight: "100vh" }}>
+      <PageHeader
+        title="Admin Control Center"
+        subtitle="Manage users, assign roles and mimic accounts."
+      />
+
+      <div className="account-card">
+        <UsersManager />
       </div>
 
-      <Card
-        styles={{
-          body: {
-            padding: "24px 32px",
-          },
-        }}
-        style={{
-          borderRadius: 12,
-          boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-          border: `1px solid ${token.colorBorderSecondary}`,
-          background: token.colorBgElevated,
-        }}
-      >
-        <Tabs
-          defaultActiveKey="users"
-          size="large"
-          items={[
-            {
-              key: "users",
-              label: (
-                <span>
-                  <UserOutlined />
-                  Users
-                </span>
-              ),
-              children: <UsersManager />,
-            },
-          ]}
-        />
-      </Card>
+      <style>{`
+        .account-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 8px;
+          padding: 24px;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+        }
+        .account-table .ant-table {
+          background: transparent !important;
+        }
+        .account-table .ant-table-thead > tr > th {
+          background: rgba(255,255,255,0.04) !important;
+          color: rgba(255,255,255,0.45) !important;
+          border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .account-table .ant-table-tbody > tr > td {
+          border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+          font-size: 12px;
+        }
+        .account-table .ant-table-tbody > tr:hover > td {
+          background: rgba(248,134,1,0.06) !important;
+        }
+      `}</style>
     </div>
   );
 };
@@ -230,36 +226,37 @@ const UsersManager: React.FC = () => {
         style={{
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
           marginBottom: 16,
         }}
       >
-        <Title level={4}>Manage Users</Title>
-        <Space>
-          {localStorage.getItem("mimic_user_id") && (
-            <Button
-              type="primary"
-              danger
-              icon={<LogoutOutlined />}
-              onClick={() => {
-                localStorage.removeItem("mimic_user_id");
-                localStorage.removeItem("mimic_user_role");
-                window.location.reload();
-              }}
-            >
-              Stop Mimicking
-            </Button>
-          )}
-          <Text type="secondary" style={{ fontStyle: "italic", fontSize: 13, lineHeight: "32px" }}>
-            Users must sign up to be added to the profiles system.
-          </Text>
-        </Space>
+        <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
+          Users who have signed up appear here. You can edit their roles or mimic their account.
+        </Text>
+        {localStorage.getItem("mimic_user_id") && (
+          <Button
+            type="primary"
+            danger
+            size="small"
+            icon={<LogoutOutlined />}
+            onClick={() => {
+              localStorage.removeItem("mimic_user_id");
+              localStorage.removeItem("mimic_user_role");
+              window.location.reload();
+            }}
+          >
+            Stop Mimicking
+          </Button>
+        )}
       </div>
       <Table
         dataSource={data?.data || []}
         columns={columns}
         rowKey="id"
         loading={isLoading}
-        pagination={{ pageSize: 10 }}
+        size="small"
+        className="account-table"
+        pagination={{ pageSize: 10, size: "small" }}
       />
 
       <Modal

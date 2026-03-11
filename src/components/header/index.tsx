@@ -27,6 +27,7 @@ import {
   PlusOutlined,
   CheckOutlined,
   EyeOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router";
 import { useOrganization } from "../../contexts/organization";
@@ -309,21 +310,8 @@ export const Header: React.FC = () => {
       {/* Right Side Tools */}
       <Space size={16}>
         {user?.isMimicked && (
-          <Tooltip title="Currently mimicking this user">
+          <Tooltip title="Stop mimicking — click to return to your account">
             <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                backgroundColor: "rgba(82, 196, 26, 0.15)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "1px solid rgba(82, 196, 26, 0.5)",
-                color: "#52c41a",
-                cursor: "pointer",
-                animation: "radar-pulse 2s infinite",
-              }}
               onClick={() => {
                 localStorage.removeItem("mimic_user_id");
                 localStorage.removeItem("mimic_user_name");
@@ -331,8 +319,44 @@ export const Header: React.FC = () => {
                 localStorage.removeItem("mimic_user_role");
                 window.location.reload();
               }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                padding: "3px 10px 3px 8px",
+                borderRadius: 20,
+                background: "rgba(82, 196, 26, 0.08)",
+                border: "1px solid rgba(82, 196, 26, 0.25)",
+                cursor: "pointer",
+                userSelect: "none",
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(82, 196, 26, 0.15)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(82, 196, 26, 0.08)")}
             >
-              <EyeOutlined />
+              {/* Pulsing live dot */}
+              <span style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: "#52c41a",
+                flexShrink: 0,
+                animation: "radar-pulse 1.8s infinite",
+                display: "inline-block",
+              }} />
+              <span style={{
+                color: "#52c41a",
+                fontSize: 12,
+                fontWeight: 500,
+                maxWidth: 100,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                lineHeight: "20px",
+              }}>
+                {user?.name || user?.email || "Mimicking"}
+              </span>
+              <CloseCircleOutlined style={{ color: "rgba(82,196,26,0.6)", fontSize: 11, flexShrink: 0 }} />
             </div>
           </Tooltip>
         )}
@@ -370,17 +394,34 @@ export const Header: React.FC = () => {
           trigger={["click"]}
           placement="bottomRight"
         >
-          <Avatar
-            shape="circle"
-            size="default"
-            style={{
-              backgroundColor: token.colorPrimary,
-              cursor: "pointer",
-              border: `1px solid ${token.colorPrimary}4D`,
-            }}
-            icon={<UserOutlined />}
-            src={user?.avatar_url}
-          />
+          {user?.isMimicked ? (
+            <div style={{ position: "relative", display: "inline-block" }}>
+              <Avatar
+                shape="circle"
+                size="default"
+                style={{
+                  backgroundColor: "#52c41a",
+                  cursor: "pointer",
+                  border: "2px solid #52c41a",
+                  animation: "radar-pulse 1.8s infinite",
+                }}
+                icon={<UserOutlined />}
+                src={user?.avatar_url}
+              />
+            </div>
+          ) : (
+            <Avatar
+              shape="circle"
+              size="default"
+              style={{
+                backgroundColor: token.colorPrimary,
+                cursor: "pointer",
+                border: `1px solid ${token.colorPrimary}4D`,
+              }}
+              icon={<UserOutlined />}
+              src={user?.avatar_url}
+            />
+          )}
         </Dropdown>
       </Space>
     </Layout.Header>

@@ -141,7 +141,22 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({
                         setAddModalOpen(false);
                     },
                     onError: (err: any) => {
-                        open?.({ type: "error", message: `Failed to add device: ${err.message}` });
+                        const isDuplicate =
+                            err?.statusCode === 23505 ||
+                            err?.message?.includes("23505") ||
+                            err?.message?.includes("devices_device_id_key") ||
+                            err?.message?.toLowerCase().includes("unique");
+
+                        if (isDuplicate) {
+                            open?.({
+                                type: "error",
+                                message: "This device is already in use.",
+                                description:
+                                    "Please first remove the device from its current organization, or contact us at hello@bronzedge.com for assistance.",
+                            });
+                        } else {
+                            open?.({ type: "error", message: `Failed to add device: ${err.message}` });
+                        }
                     },
                 }
             );
