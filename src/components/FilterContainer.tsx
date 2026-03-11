@@ -20,8 +20,7 @@ export const FilterContainer: React.FC<FilterContainerProps> = ({ title, childre
                 boxShadow: "0 12px 40px rgba(0, 0, 0, 0.6)",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
-                gap: "12px",
+                gap: "16px",
                 flexWrap: "wrap",
                 width: "100%",
                 marginBottom: "24px",
@@ -41,17 +40,29 @@ export const FilterContainer: React.FC<FilterContainerProps> = ({ title, childre
                 }}>
                     {title}
                 </span>
-                {children && <div style={{ marginLeft: 4 }}>{children}</div>}
             </div>
+
+            {children && (
+                <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '12px', 
+                    flexWrap: 'wrap',
+                    flex: '1 1 auto',
+                    minWidth: 0,
+                }}>
+                    {children}
+                </div>
+            )}
+
             {extra && (
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
+                    gap: '12px',
                     flexWrap: 'wrap',
-                    flex: '1 1 auto',
                     justifyContent: 'flex-end',
-                    minWidth: 0,
+                    marginLeft: 'auto'
                 }}>
                     {extra}
                 </div>
