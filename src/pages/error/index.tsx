@@ -23,10 +23,10 @@ export const ErrorPage: React.FC = () => {
                 extra={
                     <Button
                         type="primary"
-                        onClick={() => navigate("/devices")}
+                        onClick={() => navigate("/monitoring")}
                         style={{ height: '40px', padding: '0 32px' }}
                     >
-                        Back to Devices
+                        Back to Monitoring
                     </Button>
                 }
             />
