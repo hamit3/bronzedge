@@ -12,7 +12,7 @@ import routerProvider, {
 } from "@refinedev/react-router";
 import { liveProvider } from "@refinedev/supabase";
 import { App as AntdApp, ConfigProvider, theme, Tooltip, Badge } from "antd";
-import { BrowserRouter, Route, Routes, Outlet } from "react-router";
+import { BrowserRouter, Route, Routes, Outlet, Link } from "react-router";
 import { useJsApiLoader } from "@react-google-maps/api";
 import authProvider from "./providers/auth";
 import { dataProvider } from "./providers/data";
@@ -260,16 +260,15 @@ function App() {
                               />
                             )}
                             Title={({ collapsed }) => (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  padding: "12px 0",
-                                  width: "100%",
-                                  transition: "all 0.3s",
-                                }}
-                              >
+                              <Link to="/monitoring" style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "12px 0",
+                                width: "100%",
+                                transition: "all 0.3s",
+                                textDecoration: "none"
+                              }}>
                                 {collapsed ? (
                                   <img
                                     src="/logo-icon.png"
@@ -283,7 +282,7 @@ function App() {
                                     style={{ width: "140px", height: "auto" }}
                                   />
                                 )}
-                              </div>
+                              </Link>
                             )}
                           >
                             <Outlet />
