@@ -83,6 +83,16 @@ export const Header: React.FC = () => {
 
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
 
+  // Auto-select first org if none selected or current selection is invalid
+  useEffect(() => {
+    if (!orgsLoading && orgs.length > 0) {
+      const isSelectionValid = orgs.some((o) => o.id === activeOrgId);
+      if (!activeOrgId || !isSelectionValid) {
+        setActiveOrgId(orgs[0].id);
+      }
+    }
+  }, [orgs, orgsLoading, activeOrgId, setActiveOrgId]);
+
   // Build org switcher dropdown items
   const orgMenuItems: MenuProps["items"] = [
     {
