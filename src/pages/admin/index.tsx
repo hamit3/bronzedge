@@ -21,6 +21,8 @@ import {
   theme,
   Spin,
   Tooltip,
+  Tabs,
+  Badge,
 } from "antd";
 import {
   UserOutlined,
@@ -30,6 +32,8 @@ import {
   SafetyCertificateOutlined,
   EyeOutlined,
   LogoutOutlined,
+  TeamOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { PageHeader } from "../../components/PageHeader";
 import { supabaseClient } from "../../providers/supabase-client";
@@ -88,7 +92,27 @@ export const AdminPanelPage: React.FC = () => {
       />
 
       <div className="account-card">
-        <UsersManager />
+        <Tabs
+          defaultActiveKey="users"
+          size="middle"
+          tabBarStyle={{ marginBottom: 24 }}
+          items={[
+            {
+              key: "users",
+              label: (
+                <span><TeamOutlined style={{ marginRight: 6 }} />Users</span>
+              ),
+              children: <UsersManager />,
+            },
+            {
+              key: "demo-visitors",
+              label: (
+                <span><BarChartOutlined style={{ marginRight: 6 }} />Demo Visitors</span>
+              ),
+              children: <DemoVisitorsManager />,
+            },
+          ]}
+        />
       </div>
 
       <style>{`
@@ -116,6 +140,19 @@ export const AdminPanelPage: React.FC = () => {
         }
         .account-table .ant-table-tbody > tr:hover > td {
           background: rgba(248,134,1,0.06) !important;
+        }
+        .ant-tabs-tab {
+          color: rgba(255,255,255,0.4) !important;
+        }
+        .ant-tabs-tab-active .ant-tabs-tab-btn {
+          color: #f88601 !important;
+          font-weight: 600 !important;
+        }
+        .ant-tabs-ink-bar {
+          background: #f88601 !important;
+        }
+        .ant-tabs-nav::before {
+          border-bottom-color: rgba(255,255,255,0.08) !important;
         }
       `}</style>
     </div>
@@ -306,3 +343,153 @@ const UsersManager: React.FC = () => {
   );
 };
 
+// --- Demo Visitors ---
+const DemoVisitorsManager: React.FC = () => {
+  const { token } = theme.useToken();
+
+  const { query } = useList({
+    resource: "demo_visitors",
+    pagination: { pageSize: 50 },
+    sorters: [{ field: "visited_at", order: "desc" }],
+  });
+
+  const visitors = (query.data?.data ?? []) as any[];
+  const isLoading = query.isLoading;
+
+  const columns = [
+    {
+      title: "Date",
+      dataIndex: "visited_at",
+      key: "visited_at",
+      width: 155,
+      render: (v: string) => (
+        <Tooltip title={new Date(v).toLocaleString()}>
+          <Text style={{ color: "rgba(255,255,255,0.55)", fontSize: 11, fontFamily: "monospace" }}>
+            {new Date(v).toLocaleDateString()}{" "}
+            <span style={{ color: "rgba(255,255,255,0.3)" }}>
+              {new Date(v).toLocaleTimeString()}
+            </span>
+          </Text>
+        </Tooltip>
+      ),
+    },
+    {
+      title: "Timezone",
+      dataIndex: "timezone",
+      key: "timezone",
+      width: 160,
+      render: (v: string) => (
+        <Tag style={{ background: "rgba(248,134,1,0.1)", borderColor: "rgba(248,134,1,0.3)", color: "#f88601", fontSize: 11 }}>
+          {v || "—"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Language",
+      dataIndex: "language",
+      key: "language",
+      width: 80,
+      render: (v: string) => <Text style={{ color: "rgba(255,255,255,0.55)", fontSize: 11 }}>{v || "—"}</Text>,
+    },
+    {
+      title: "Screen",
+      key: "screen",
+      width: 110,
+      render: (_: any, r: any) => (
+        <Text style={{ color: "rgba(255,255,255,0.55)", fontFamily: "monospace", fontSize: 11 }}>
+          {r.screen_width && r.screen_height ? `${r.screen_width}×${r.screen_height}` : "—"}
+        </Text>
+      ),
+    },
+    {
+      title: "Connection",
+      dataIndex: "connection_type",
+      key: "connection_type",
+      width: 90,
+      render: (v: string) => {
+        const colorMap: Record<string, string> = { "4g": "#52c41a", "3g": "#faad14", "2g": "#ff4d4f", wifi: "#1890ff" };
+        const c = colorMap[v];
+        return v
+          ? <Tag style={{ fontSize: 11, background: c ? `${c}22` : undefined, borderColor: c ? `${c}66` : undefined, color: c }}>{v.toUpperCase()}</Tag>
+          : <Text style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>—</Text>;
+      },
+    },
+    {
+      title: "CPU",
+      dataIndex: "hardware_concurrency",
+      key: "hardware_concurrency",
+      width: 60,
+      render: (v: number) => <Text style={{ color: "rgba(255,255,255,0.55)", fontSize: 11 }}>{v ?? "—"} cores</Text>,
+    },
+    {
+      title: "RAM",
+      dataIndex: "device_memory",
+      key: "device_memory",
+      width: 70,
+      render: (v: number) => <Text style={{ color: "rgba(255,255,255,0.55)", fontSize: 11 }}>{v ? `${v} GB` : "—"}</Text>,
+    },
+    {
+      title: "Platform",
+      dataIndex: "platform",
+      key: "platform",
+      width: 100,
+      render: (v: string) => <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 11 }}>{v || "—"}</Text>,
+    },
+    {
+      title: "Referrer",
+      dataIndex: "referrer",
+      key: "referrer",
+      ellipsis: true,
+      render: (v: string) => v
+        ? <Tooltip title={v}><Text style={{ color: "#1890ff", fontSize: 11 }}>{v}</Text></Tooltip>
+        : <Text style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}>direct</Text>,
+    },
+    {
+      title: "User Agent",
+      dataIndex: "user_agent",
+      key: "user_agent",
+      ellipsis: true,
+      render: (v: string) => (
+        <Tooltip title={v}>
+          <Text style={{ color: "rgba(255,255,255,0.35)", fontSize: 10, fontFamily: "monospace" }}>
+            {v ? v.slice(0, 55) + "…" : "—"}
+          </Text>
+        </Tooltip>
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <Space size={8}>
+          <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
+            Visitors who clicked "Try Demo Account" on the login page.
+          </Text>
+          <Badge
+            count={visitors.length}
+            style={{ backgroundColor: "#f88601", fontSize: 11 }}
+          />
+        </Space>
+        <Button
+          size="small"
+          onClick={() => query.refetch()}
+          style={{ background: "rgba(248,134,1,0.1)", borderColor: "rgba(248,134,1,0.3)", color: "#f88601" }}
+        >
+          Refresh
+        </Button>
+      </div>
+      <Table
+        dataSource={visitors}
+        columns={columns}
+        rowKey="id"
+        loading={isLoading}
+        size="small"
+        className="account-table"
+        pagination={{ pageSize: 20, size: "small" }}
+        scroll={{ x: "max-content" }}
+        locale={{ emptyText: "No demo visitors yet." }}
+      />
+    </div>
+  );
+};

@@ -130,9 +130,9 @@ export const AccountPage: React.FC = () => {
 
     return (
         <div style={{ padding: "24px", minHeight: "100vh" }}>
-            <PageHeader 
-                title="Account Management" 
-                subtitle="Manage your organizations, team members, devices, and personal settings."
+            <PageHeader
+                title="Account Management"
+                subtitle="Manage your organizations, devices and geofences."
                 extra={null}
             />
 

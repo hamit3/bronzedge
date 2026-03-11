@@ -1,5 +1,4 @@
 import { Refine, Authenticated } from "@refinedev/core";
-import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
 import { useNotificationProvider, ThemedLayout, ThemedSider } from "@refinedev/antd";
@@ -175,7 +174,6 @@ function App() {
           `}</style>
           <AntdApp>
             <OrganizationProvider>
-              <DevtoolsProvider>
                 <Refine
                   notificationProvider={useNotificationProvider}
                   dataProvider={dataProvider}
@@ -260,7 +258,6 @@ function App() {
                   options={{
                     syncWithLocation: true,
                     warnWhenUnsavedChanges: true,
-                    projectId: "qAQyh8-824O2c-uPhcpp",
                   }}
                 >
                   <Routes>
@@ -387,11 +384,15 @@ function App() {
                   </Routes>
                   <RefineKbar />
                   <UnsavedChangesNotifier />
-                  <DocumentTitleHandler />
+                  <DocumentTitleHandler
+                    handler={({ resource }) => {
+                      const resourceName = resource?.meta?.label || resource?.name || "";
+                      if (!resourceName) return "BronzEdge";
+                      return `${resourceName} | BronzEdge`;
+                    }}
+                  />
                 </Refine>
-                <DevtoolsPanel />
-              </DevtoolsProvider>
-            </OrganizationProvider>
+              </OrganizationProvider>
           </AntdApp>
         </RefineKbarProvider>
       </ConfigProvider>
