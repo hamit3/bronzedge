@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useGetIdentity, useList, useLogout, useMenu } from "@refinedev/core";
 import dayjs from "dayjs";
 import {
@@ -35,6 +35,17 @@ import { useOrganization } from "../../contexts/organization";
 const { Text } = Typography;
 const { useToken } = theme;
 
+// Simple hook to detect mobile breakpoint
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < breakpoint);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 export const Header: React.FC = () => {
   const { token } = useToken();
   const { data: user } = useGetIdentity<any>();
@@ -42,6 +53,7 @@ export const Header: React.FC = () => {
   const { menuItems } = useMenu();
   const navigate = useNavigate();
   const { activeOrgId, setActiveOrgId } = useOrganization();
+  const isMobile = useIsMobile();
 
   const [options, setOptions] = useState<{ label: string; value: string }[]>([]);
 
@@ -73,7 +85,6 @@ export const Header: React.FC = () => {
 
   // Build org switcher dropdown items
   const orgMenuItems: MenuProps["items"] = [
-    // Header label
     {
       key: "label",
       label: (
@@ -84,7 +95,6 @@ export const Header: React.FC = () => {
       disabled: true,
     },
     { type: "divider" },
-    // Org list
     ...orgs.map((org) => ({
       key: org.id,
       label: (
@@ -133,7 +143,7 @@ export const Header: React.FC = () => {
     },
   ];
 
-  // Fetch alerts for last 24h for active organization's devices
+  // Fetch alerts count
   const { query: orgDevicesQuery } = useList({
     resource: "devices",
     filters: activeOrgId ? [{ field: "organization_id", operator: "eq", value: activeOrgId }] : [],
@@ -152,13 +162,13 @@ export const Header: React.FC = () => {
         ? [{ field: "device_id", operator: "in", value: orgDeviceIds }]
         : [{ field: "device_id", operator: "eq", value: "none" }])
     ] as any,
-    pagination: { pageSize: 1 }, // We only need the total count
+    pagination: { pageSize: 1 },
     queryOptions: { enabled: orgDeviceIds.length > 0 },
   });
 
   const activeAlertsCount = alertsQuery.data?.total || 0;
 
-  // Search handler
+  // Search handler (desktop only)
   const handleSearch = (value: string) => {
     if (!value) {
       setOptions([]);
@@ -179,6 +189,15 @@ export const Header: React.FC = () => {
 
   const onSelect = (value: string) => {
     navigate(value);
+  };
+
+  // Stop mimicking helper
+  const stopMimicking = () => {
+    localStorage.removeItem("mimic_user_id");
+    localStorage.removeItem("mimic_user_name");
+    localStorage.removeItem("mimic_user_email");
+    localStorage.removeItem("mimic_user_role");
+    window.location.reload();
   };
 
   // User profile dropdown
@@ -213,13 +232,9 @@ export const Header: React.FC = () => {
       icon: <LogoutOutlined />,
       onClick: () => {
         if (user?.isMimicked) {
-           localStorage.removeItem("mimic_user_id");
-           localStorage.removeItem("mimic_user_name");
-           localStorage.removeItem("mimic_user_email");
-           localStorage.removeItem("mimic_user_role");
-           window.location.reload();
+          stopMimicking();
         } else {
-           logout();
+          logout();
         }
       },
     },
@@ -233,198 +248,203 @@ export const Header: React.FC = () => {
           70% { box-shadow: 0 0 0 10px rgba(82, 196, 26, 0); }
           100% { box-shadow: 0 0 0 0 rgba(82, 196, 26, 0); }
         }
+        @media (max-width: 768px) {
+          .header-search { display: none !important; }
+          .org-switcher-text { display: none !important; }
+        }
       `}</style>
       <Layout.Header
         style={{
           backgroundColor: token.colorBgContainer,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "0 24px",
-        height: "64px",
-        position: "sticky",
-        top: 0,
-        zIndex: 999,
-        borderBottom: `1px solid ${token.colorBorderSecondary}`,
-      }}
-    >
-      {/* Left Side: Organization Switcher */}
-      <Space size={16}>
-        <Dropdown menu={{ items: orgMenuItems }} trigger={["click"]}>
-          <div
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "4px 10px",
-              backgroundColor: token.colorFillTertiary,
-              borderRadius: "6px",
-              border: `1px solid ${token.colorBorderSecondary}`,
-              minWidth: 140,
-            }}
-          >
-            {orgsLoading ? (
-              <Spin size="small" />
-            ) : (
-              <>
-                <div
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 5,
-                    background: "rgba(248,134,1,0.2)",
-                    border: "1px solid rgba(248,134,1,0.3)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#f88601",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    flexShrink: 0,
-                  }}
-                >
-                  <BankOutlined />
-                </div>
-                <Text
-                  strong
-                  ellipsis
-                  style={{
-                    fontSize: "13px",
-                    color: token.colorTextHeading,
-                    maxWidth: "110px",
-                    flex: 1,
-                  }}
-                >
-                  {activeOrg?.name ?? (orgs.length === 0 ? "No Organization" : "Select Org")}
-                </Text>
-                <DownOutlined
-                  style={{ fontSize: "8px", color: token.colorTextTertiary }}
-                />
-              </>
-            )}
-          </div>
-        </Dropdown>
-      </Space>
-
-      {/* Right Side Tools */}
-      <Space size={16}>
-        {user?.isMimicked && (
-          <Tooltip title="Stop mimicking — click to return to your account">
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: isMobile ? "0 12px" : "0 24px",
+          height: "64px",
+          position: "sticky",
+          top: 0,
+          zIndex: 999,
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        }}
+      >
+        {/* Left Side: Organization Switcher */}
+        <Space size={8}>
+          <Dropdown menu={{ items: orgMenuItems }} trigger={["click"]}>
             <div
-              onClick={() => {
-                localStorage.removeItem("mimic_user_id");
-                localStorage.removeItem("mimic_user_name");
-                localStorage.removeItem("mimic_user_email");
-                localStorage.removeItem("mimic_user_role");
-                window.location.reload();
-              }}
               style={{
+                cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: 7,
-                padding: "3px 10px 3px 8px",
-                borderRadius: 20,
-                background: "rgba(82, 196, 26, 0.08)",
-                border: "1px solid rgba(82, 196, 26, 0.25)",
-                cursor: "pointer",
-                userSelect: "none",
-                transition: "background 0.2s",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(82, 196, 26, 0.15)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "rgba(82, 196, 26, 0.08)")}
-            >
-              {/* Pulsing live dot */}
-              <span style={{
-                width: 7,
-                height: 7,
-                borderRadius: "50%",
-                background: "#52c41a",
-                flexShrink: 0,
-                animation: "radar-pulse 1.8s infinite",
-                display: "inline-block",
-              }} />
-              <span style={{
-                color: "#52c41a",
-                fontSize: 12,
-                fontWeight: 500,
-                maxWidth: 100,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                lineHeight: "20px",
-              }}>
-                {user?.name || user?.email || "Mimicking"}
-              </span>
-              <CloseCircleOutlined style={{ color: "rgba(82,196,26,0.6)", fontSize: 11, flexShrink: 0 }} />
-            </div>
-          </Tooltip>
-        )}
-
-        {/* Quick Search */}
-        <div style={{ width: "200px" }}>
-          <AutoComplete
-            options={options}
-            onSearch={handleSearch}
-            onSelect={onSelect}
-            style={{ width: "100%" }}
-          >
-            <Input
-              prefix={
-                <SearchOutlined
-                  style={{ color: token.colorTextTertiary, fontSize: "13px" }}
-                />
-              }
-              placeholder="Search..."
-              variant="filled"
-              size="small"
-              style={{
+                gap: "8px",
+                padding: isMobile ? "4px 8px" : "4px 10px",
                 backgroundColor: token.colorFillTertiary,
                 borderRadius: "6px",
-                border: "none",
+                border: `1px solid ${token.colorBorderSecondary}`,
+                minWidth: isMobile ? "auto" : 140,
+                maxWidth: isMobile ? 140 : 200,
               }}
-            />
-          </AutoComplete>
-        </div>
+            >
+              {orgsLoading ? (
+                <Spin size="small" />
+              ) : (
+                <>
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 5,
+                      background: "rgba(248,134,1,0.2)",
+                      border: "1px solid rgba(248,134,1,0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#f88601",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <BankOutlined />
+                  </div>
+                  {/* Hide text on very small screens */}
+                  <Text
+                    strong
+                    ellipsis
+                    className="org-switcher-text"
+                    style={{
+                      fontSize: "13px",
+                      color: token.colorTextHeading,
+                      maxWidth: isMobile ? "80px" : "110px",
+                      flex: 1,
+                      display: isMobile ? "none" : undefined,
+                    }}
+                  >
+                    {activeOrg?.name ?? (orgs.length === 0 ? "No Org" : "Select Org")}
+                  </Text>
+                  <DownOutlined
+                    style={{ fontSize: "8px", color: token.colorTextTertiary, flexShrink: 0 }}
+                  />
+                </>
+              )}
+            </div>
+          </Dropdown>
+        </Space>
 
+        {/* Right Side Tools */}
+        <Space size={isMobile ? 8 : 16}>
+          {/* Mimic indicator */}
+          {user?.isMimicked && (
+            <Tooltip title="Stop mimicking — click to return to your account">
+              <div
+                onClick={stopMimicking}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 7,
+                  padding: isMobile ? "3px 8px" : "3px 10px 3px 8px",
+                  borderRadius: 20,
+                  background: "rgba(82, 196, 26, 0.08)",
+                  border: "1px solid rgba(82, 196, 26, 0.25)",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(82, 196, 26, 0.15)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "rgba(82, 196, 26, 0.08)")}
+              >
+                <span style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  background: "#52c41a",
+                  flexShrink: 0,
+                  animation: "radar-pulse 1.8s infinite",
+                  display: "inline-block",
+                }} />
+                {!isMobile && (
+                  <span style={{
+                    color: "#52c41a",
+                    fontSize: 12,
+                    fontWeight: 500,
+                    maxWidth: 100,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    lineHeight: "20px",
+                  }}>
+                    {user?.name || user?.email || "Mimicking"}
+                  </span>
+                )}
+                <CloseCircleOutlined style={{ color: "rgba(82,196,26,0.6)", fontSize: 11, flexShrink: 0 }} />
+              </div>
+            </Tooltip>
+          )}
 
-        {/* User Profile */}
-        <Dropdown
-          menu={{ items: userMenuItems }}
-          trigger={["click"]}
-          placement="bottomRight"
-        >
-          {user?.isMimicked ? (
-            <div style={{ position: "relative", display: "inline-block" }}>
+          {/* Quick Search — hidden on mobile */}
+          {!isMobile && (
+            <div className="header-search" style={{ width: "200px" }}>
+              <AutoComplete
+                options={options}
+                onSearch={handleSearch}
+                onSelect={onSelect}
+                style={{ width: "100%" }}
+              >
+                <Input
+                  prefix={
+                    <SearchOutlined
+                      style={{ color: token.colorTextTertiary, fontSize: "13px" }}
+                    />
+                  }
+                  placeholder="Search..."
+                  variant="filled"
+                  size="small"
+                  style={{
+                    backgroundColor: token.colorFillTertiary,
+                    borderRadius: "6px",
+                    border: "none",
+                  }}
+                />
+              </AutoComplete>
+            </div>
+          )}
+
+          {/* User Profile */}
+          <Dropdown
+            menu={{ items: userMenuItems }}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            {user?.isMimicked ? (
+              <div style={{ position: "relative", display: "inline-block" }}>
+                <Avatar
+                  shape="circle"
+                  size="default"
+                  style={{
+                    backgroundColor: "#52c41a",
+                    cursor: "pointer",
+                    border: "2px solid #52c41a",
+                    animation: "radar-pulse 1.8s infinite",
+                  }}
+                  icon={<UserOutlined />}
+                  src={user?.avatar_url}
+                />
+              </div>
+            ) : (
               <Avatar
                 shape="circle"
                 size="default"
                 style={{
-                  backgroundColor: "#52c41a",
+                  backgroundColor: token.colorPrimary,
                   cursor: "pointer",
-                  border: "2px solid #52c41a",
-                  animation: "radar-pulse 1.8s infinite",
+                  border: `1px solid ${token.colorPrimary}4D`,
                 }}
                 icon={<UserOutlined />}
                 src={user?.avatar_url}
               />
-            </div>
-          ) : (
-            <Avatar
-              shape="circle"
-              size="default"
-              style={{
-                backgroundColor: token.colorPrimary,
-                cursor: "pointer",
-                border: `1px solid ${token.colorPrimary}4D`,
-              }}
-              icon={<UserOutlined />}
-              src={user?.avatar_url}
-            />
-          )}
-        </Dropdown>
-      </Space>
-    </Layout.Header>
+            )}
+          </Dropdown>
+        </Space>
+      </Layout.Header>
     </>
   );
 };

@@ -42,6 +42,7 @@ import { RulesPage } from "./pages/rules";
 import { EventsPage } from "./pages/events";
 import { RulesMenuLabel } from "./pages/rules/RulesMenuLabel";
 import { AdminPanelPage } from "./pages/admin";
+import { DesktopOnlyWrapper } from "./components/DesktopOnlyWrapper";
 
 const libraries: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry", "places"];
 
@@ -173,7 +174,8 @@ function App() {
             }
           `}</style>
           <AntdApp>
-            <OrganizationProvider>
+            <DesktopOnlyWrapper>
+              <OrganizationProvider>
                 <Refine
                   notificationProvider={useNotificationProvider}
                   dataProvider={dataProvider}
@@ -393,6 +395,7 @@ function App() {
                   />
                 </Refine>
               </OrganizationProvider>
+            </DesktopOnlyWrapper>
           </AntdApp>
         </RefineKbarProvider>
       </ConfigProvider>

@@ -14,18 +14,21 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, extra }
         <div style={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
-            alignItems: 'baseline', 
+            alignItems: 'flex-start',
             flexWrap: 'wrap', 
-            gap: '16px',
+            gap: '12px',
             marginBottom: '24px'
         }}>
-            <div>
+            <div style={{ flex: '1 1 auto', minWidth: 0 }}>
                 <Title level={2} style={{ 
                     color: "#f88601", 
                     margin: 0,
                     fontSize: '24px',
                     fontWeight: 700,
-                    letterSpacing: '-0.5px'
+                    letterSpacing: '-0.5px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                 }}>
                     {title}
                 </Title>
@@ -39,9 +42,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, extra }
                 )}
             </div>
             {extra && (
-                <Space size="middle">
-                    {extra}
-                </Space>
+                <div style={{ flexShrink: 0 }}>
+                    <Space size="small" wrap>
+                        {extra}
+                    </Space>
+                </div>
             )}
         </div>
     );

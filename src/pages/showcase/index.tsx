@@ -285,10 +285,10 @@ export const ShowcasePage: React.FC = () => {
             <FilterContainer 
                 title="Telemetry Pipeline"
                 extra={
-                    <Space size="middle">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', width: '100%' }}>
                         <Select
                             placeholder={devicesLoading ? "Loading devices…" : deviceIds.length === 0 ? "No devices in org" : "Select device"}
-                            style={{ width: 240 }}
+                            style={{ minWidth: 160, flex: '1 1 160px', maxWidth: 280 }}
                             allowClear
                             onChange={setSelectedDeviceId}
                             value={selectedDeviceId}
@@ -310,11 +310,11 @@ export const ShowcasePage: React.FC = () => {
                             onClick={handleRefresh}
                             loading={isRefreshing}
                             disabled={isRefreshing}
-                            style={{ background: 'transparent', color: '#f88601', borderColor: '#f88601' }}
+                            style={{ background: 'transparent', color: '#f88601', borderColor: '#f88601', flexShrink: 0 }}
                         >
                             Refresh
                         </Button>
-                    </Space>
+                    </div>
                 }
             >
                 <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px' }}>
