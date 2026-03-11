@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useList,
   useCreate,
@@ -20,6 +20,7 @@ import {
   Tag,
   theme,
   Spin,
+  Tooltip,
 } from "antd";
 import {
   UserOutlined,
@@ -31,6 +32,7 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { PageHeader } from "../../components/PageHeader";
+import { supabaseClient } from "../../providers/supabase-client";
 
 const { Text, Title } = Typography;
 
@@ -126,6 +128,14 @@ const UsersManager: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form] = Form.useForm();
+  const [realAdminId, setRealAdminId] = useState<string | null>(null);
+
+  // Get the REAL authenticated user's ID (not the mimicked one)
+  useEffect(() => {
+    supabaseClient.auth.getUser().then(({ data }) => {
+      if (data?.user?.id) setRealAdminId(data.user.id);
+    });
+  }, []);
 
   const { query } = useList({
     resource: "profiles",
@@ -198,23 +208,34 @@ const UsersManager: React.FC = () => {
             onClick={() => handleOpenModal(record)}
             title="Edit Profile"
           />
-          <Popconfirm
-            title="Mimic this user's Identity in UI? Data visibility still depends on your Admin RLS policies."
-            onConfirm={() => {
-              localStorage.setItem("mimic_user_id", record.id);
-              localStorage.setItem("mimic_user_email", record.email);
-              localStorage.setItem("mimic_user_name", record.full_name || record.email);
-              localStorage.setItem("mimic_user_role", record.role || "user");
-              window.location.href = "/monitoring";
-            }}
-          >
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              title="Mimic User"
-              style={{ color: token.colorInfo }}
-            />
-          </Popconfirm>
+          {record.id !== realAdminId ? (
+            <Popconfirm
+              title="Mimic this user's Identity in UI? Data visibility still depends on your Admin RLS policies."
+              onConfirm={() => {
+                localStorage.setItem("mimic_user_id", record.id);
+                localStorage.setItem("mimic_user_email", record.email);
+                localStorage.setItem("mimic_user_name", record.full_name || record.email);
+                localStorage.setItem("mimic_user_role", record.role || "user");
+                window.location.href = "/monitoring";
+              }}
+            >
+              <Button
+                type="text"
+                icon={<EyeOutlined />}
+                title="Mimic User"
+                style={{ color: token.colorInfo }}
+              />
+            </Popconfirm>
+          ) : (
+            <Tooltip title="Cannot mimic yourself">
+              <Button
+                type="text"
+                icon={<EyeOutlined />}
+                disabled
+                style={{ color: "rgba(255,255,255,0.15)" }}
+              />
+            </Tooltip>
+          )}
         </Space>
       ),
     },
