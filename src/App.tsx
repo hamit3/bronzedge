@@ -28,6 +28,7 @@ import {
   BellOutlined,
   ThunderboltOutlined,
   UnorderedListOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 
 import { ReportList } from "./pages/reports";
@@ -41,6 +42,7 @@ import { UpdatePasswordPage } from "./pages/update-password";
 import { RulesPage } from "./pages/rules";
 import { EventsPage } from "./pages/events";
 import { RulesMenuLabel } from "./pages/rules/RulesMenuLabel";
+import { AdminPanelPage } from "./pages/admin";
 
 const libraries: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry", "places"];
 
@@ -180,6 +182,15 @@ function App() {
                   liveProvider={liveProvider(supabaseClient)}
                   authProvider={authProvider}
                   routerProvider={routerProvider}
+                  accessControlProvider={{
+                    can: async ({ resource }) => {
+                      if (resource === "admin") {
+                        const role = await authProvider.getPermissions?.();
+                        return { can: role === "admin" };
+                      }
+                      return { can: true };
+                    },
+                  }}
                   resources={[
                     {
                       name: "monitoring",
@@ -227,6 +238,14 @@ function App() {
                       meta: {
                         label: "Events",
                         icon: <UnorderedListOutlined />,
+                      },
+                    },
+                    {
+                      name: "admin",
+                      list: "/admin",
+                      meta: {
+                        label: "Admin",
+                        icon: <SettingOutlined />,
                       },
                     },
                     {
@@ -344,6 +363,7 @@ function App() {
                       <Route path="/alerts" element={<AlertsPage />} />
                       <Route path="/rules" element={<RulesPage />} />
                       <Route path="/events" element={<EventsPage />} />
+                      <Route path="/admin" element={<AdminPanelPage />} />
                       <Route path="/account" element={<AccountPage />} />
                     </Route>
                     <Route

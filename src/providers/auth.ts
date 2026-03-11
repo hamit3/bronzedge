@@ -217,10 +217,15 @@ const authProvider: AuthProvider = {
     };
   },
   getPermissions: async () => {
-    const user = await supabaseClient.auth.getUser();
+    const { data } = await supabaseClient.auth.getUser();
 
-    if (user) {
-      return user.data.user?.role;
+    if (data?.user) {
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+      return profile?.role || "user";
     }
 
     return null;
@@ -229,9 +234,39 @@ const authProvider: AuthProvider = {
     const { data } = await supabaseClient.auth.getUser();
 
     if (data?.user) {
+      // Check for mimicked user
+      const mimicUserId = localStorage.getItem("mimic_user_id");
+      if (mimicUserId) {
+         const { data: mimicProfile } = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("id", mimicUserId)
+          .single();
+         
+         if (mimicProfile) {
+           return {
+             ...mimicProfile,
+             id: mimicProfile.id,
+             name: mimicProfile.full_name || mimicProfile.email,
+             email: mimicProfile.email,
+             avatar_url: mimicProfile.avatar_url,
+             isMimicked: true,
+           };
+         }
+      }
+
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
+
       return {
         ...data.user,
-        name: data.user.email,
+        ...profile,
+        name: profile?.full_name || data.user.user_metadata?.full_name || data.user.email,
+        email: profile?.email || data.user.email,
+        avatar_url: profile?.avatar_url || data.user.user_metadata?.avatar_url,
       };
     }
 

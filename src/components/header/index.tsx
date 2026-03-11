@@ -14,6 +14,7 @@ import {
   Badge,
   Tooltip,
   Spin,
+  Tag,
 } from "antd";
 import {
   LogoutOutlined,
@@ -25,6 +26,7 @@ import {
   DownOutlined,
   PlusOutlined,
   CheckOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router";
 import { useOrganization } from "../../contexts/organization";
@@ -189,6 +191,9 @@ export const Header: React.FC = () => {
           </Text>
           <Text type="secondary" style={{ fontSize: "12px" }}>
             {memberships.find((m) => m.organization_id === activeOrgId)?.role ?? "—"}
+            {user?.isMimicked && (
+              <Tag color="green" style={{ marginLeft: 8, fontSize: "10px" }}>MIMICKING</Tag>
+            )}
           </Text>
         </div>
       ),
@@ -203,16 +208,34 @@ export const Header: React.FC = () => {
     },
     {
       key: "logout",
-      label: "Logout",
+      label: user?.isMimicked ? "Stop Mimicking" : "Logout",
       icon: <LogoutOutlined />,
-      onClick: () => logout(),
+      onClick: () => {
+        if (user?.isMimicked) {
+           localStorage.removeItem("mimic_user_id");
+           localStorage.removeItem("mimic_user_name");
+           localStorage.removeItem("mimic_user_email");
+           localStorage.removeItem("mimic_user_role");
+           window.location.reload();
+        } else {
+           logout();
+        }
+      },
     },
   ];
 
   return (
-    <Layout.Header
-      style={{
-        backgroundColor: token.colorBgContainer,
+    <>
+      <style>{`
+        @keyframes radar-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.7); }
+          70% { box-shadow: 0 0 0 10px rgba(82, 196, 26, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(82, 196, 26, 0); }
+        }
+      `}</style>
+      <Layout.Header
+        style={{
+          backgroundColor: token.colorBgContainer,
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
@@ -285,6 +308,35 @@ export const Header: React.FC = () => {
 
       {/* Right Side Tools */}
       <Space size={16}>
+        {user?.isMimicked && (
+          <Tooltip title="Currently mimicking this user">
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                backgroundColor: "rgba(82, 196, 26, 0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1px solid rgba(82, 196, 26, 0.5)",
+                color: "#52c41a",
+                cursor: "pointer",
+                animation: "radar-pulse 2s infinite",
+              }}
+              onClick={() => {
+                localStorage.removeItem("mimic_user_id");
+                localStorage.removeItem("mimic_user_name");
+                localStorage.removeItem("mimic_user_email");
+                localStorage.removeItem("mimic_user_role");
+                window.location.reload();
+              }}
+            >
+              <EyeOutlined />
+            </div>
+          </Tooltip>
+        )}
+
         {/* Quick Search */}
         <div style={{ width: "200px" }}>
           <AutoComplete
@@ -332,5 +384,6 @@ export const Header: React.FC = () => {
         </Dropdown>
       </Space>
     </Layout.Header>
+    </>
   );
 };
