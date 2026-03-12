@@ -440,8 +440,6 @@ export const ShowcasePage: React.FC = () => {
                         <Card variant="borderless" className="dashboard-card" bodyStyle={{ padding: 0, height: 160, display: 'flex', flexDirection: 'column' }}>
                             <div
                                 style={{ position: 'relative', height: 160, width: '100%', borderRadius: 8, overflow: 'hidden' }}
-                                onMouseEnter={() => setShowStatusHover(true)}
-                                onMouseLeave={() => setShowStatusHover(false)}
                             >
                                 {/* Floating Title Overlay */}
                                 <div style={{
@@ -455,28 +453,6 @@ export const ShowcasePage: React.FC = () => {
                                         LAST POSITION
                                     </Text>
                                 </div>
-
-                                {/* Floating Status Overlay on Card Hover */}
-                                {showStatusHover && statusData && statusData.length > 0 && (() => {
-                                    const s = statusData.find((sd: any) => sd.device_id === gnssData[0]?.device_id) || statusData[0];
-                                    return (
-                                        <div style={{
-                                            position: 'absolute', top: 12, right: 12, zIndex: 10,
-                                            background: 'rgba(29, 29, 29, 0.95)', padding: '8px 12px', borderRadius: 8,
-                                            backdropFilter: 'blur(8px)', border: '1px solid rgba(248,134,1,0.3)',
-                                            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                                            color: '#fff', fontSize: 11, minWidth: 150
-                                        }}>
-                                            <strong style={{ fontSize: 12, color: '#f88601' }}>{getDeviceName(s.device_id)}</strong><br />
-                                            <div style={{ marginTop: 6, display: 'grid', gridTemplateColumns: 'min-content auto', gap: '4px 8px', whiteSpace: 'nowrap' }}>
-                                                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Battery:</span> <span>{s.battery_mv ? `${s.battery_mv} mV` : "--"}</span>
-                                                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Firmware:</span> <span>{s.firmware || "--"}</span>
-                                                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Operator:</span> <span>{s.operator || "--"}</span>
-                                                <span style={{ color: 'rgba(255,255,255,0.45)' }}>Network:</span> <span>{s.band || "--"} / {s.mode || "--"}</span>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
 
                                 {gnssLoading ? <Spin size="small" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} /> : (!mapData || mapData.length === 0) ? (
                                     <div style={{ height: '100%', width: '100%', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -496,12 +472,21 @@ export const ShowcasePage: React.FC = () => {
                                             mapTypeId: 'roadmap',
                                             disableDefaultUI: true,
                                             draggable: false,
-                                            keyboardShortcuts: false,
+                                            zoomControl: false,
+                                            scrollwheel: false,
                                             disableDoubleClickZoom: true,
+                                            keyboardShortcuts: false,
+                                            gestureHandling: 'none',
+                                            clickableIcons: false,
+                                            streetViewControl: false,
+                                            fullscreenControl: false,
+                                            mapTypeControl: false,
+                                            scaleControl: false
                                         }}
                                     >
                                         <Marker
                                             position={{ lat: mapData[0].y, lng: mapData[0].x }}
+                                            title={`${getDeviceName(gnssData[0]?.device_id)} | ${mapData[0].y.toFixed(5)}, ${mapData[0].x.toFixed(5)}`}
                                             icon={{
                                                 path: window.google?.maps?.SymbolPath?.CIRCLE,
                                                 scale: 6,
