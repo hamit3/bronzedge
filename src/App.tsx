@@ -29,6 +29,9 @@ import {
   SettingOutlined,
   HistoryOutlined,
   LineChartOutlined,
+  BankOutlined,
+  DesktopOutlined,
+  AimOutlined,
 } from "@ant-design/icons";
 
 import { ActivityAnalysisPage } from "./pages/reports/ActivityAnalysisPage";
@@ -38,7 +41,10 @@ import { Header } from "./components/header";
 import { ErrorPage } from "./pages/error";
 import { ShowcasePage } from "./pages/showcase";
 import { MapsPage } from "./pages/maps/MapsPage";
-import { AccountPage } from "./pages/account";
+import { OrganizationsPage } from "./pages/account/OrganizationsPage";
+import { DevicesPage } from "./pages/account/DevicesPage";
+import { GeofencingPage } from "./pages/account/GeofencingPage";
+import { ProfilePage } from "./pages/account/ProfilePage";
 import { UpdatePasswordPage } from "./pages/update-password";
 import { RulesPage } from "./pages/rules";
 import { EventsPage } from "./pages/events";
@@ -281,10 +287,34 @@ function App() {
                       },
                     },
                     {
-                      name: "account",
-                      list: "/account",
+                      name: "organizations",
+                      list: "/organizations",
                       meta: {
-                        label: "Account",
+                        label: "Organizations",
+                        icon: <BankOutlined />,
+                      },
+                    },
+                    {
+                      name: "devices-list",
+                      list: "/devices-list",
+                      meta: {
+                        label: "Devices",
+                        icon: <DesktopOutlined />,
+                      },
+                    },
+                    {
+                      name: "geofencing",
+                      list: "/geofencing",
+                      meta: {
+                        label: "Geofencing",
+                        icon: <AimOutlined />,
+                      },
+                    },
+                    {
+                      name: "profile",
+                      list: "/profile",
+                      meta: {
+                        label: "My Profile",
                         icon: <UserOutlined />,
                       },
                     },
@@ -396,7 +426,10 @@ function App() {
                       <Route path="/rules" element={<RulesPage />} />
                       <Route path="/events" element={<EventsPage />} />
                       <Route path="/admin" element={<AdminPanelPage />} />
-                      <Route path="/account" element={<AccountPage />} />
+                      <Route path="/organizations" element={<OrganizationsPage />} />
+                      <Route path="/devices-list" element={<DevicesPage />} />
+                      <Route path="/geofencing" element={<GeofencingPage />} />
+                      <Route path="/profile" element={<ProfilePage />} />
                     </Route>
                     <Route
                       element={

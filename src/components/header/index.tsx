@@ -149,7 +149,7 @@ export const Header: React.FC = () => {
           <span>Manage Organizations</span>
         </Space>
       ),
-      onClick: () => navigate("/account"),
+      onClick: () => navigate("/organizations"),
     },
   ];
 
@@ -233,9 +233,9 @@ export const Header: React.FC = () => {
     { type: "divider" },
     {
       key: "account",
-      label: "Account",
+      label: "My Profile",
       icon: <UserOutlined />,
-      onClick: () => navigate("/account"),
+      onClick: () => navigate("/profile"),
     },
     {
       key: "logout",
