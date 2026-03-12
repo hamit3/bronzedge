@@ -207,6 +207,7 @@ export const Header: React.FC = () => {
     localStorage.removeItem("mimic_user_name");
     localStorage.removeItem("mimic_user_email");
     localStorage.removeItem("mimic_user_role");
+    localStorage.removeItem("bronzedge_active_org_id");
     window.location.reload();
   };
 

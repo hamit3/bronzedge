@@ -257,6 +257,7 @@ const UsersManager: React.FC = () => {
                 localStorage.setItem("mimic_user_email", record.email);
                 localStorage.setItem("mimic_user_name", record.full_name || record.email);
                 localStorage.setItem("mimic_user_role", record.role || "user");
+                localStorage.removeItem("bronzedge_active_org_id"); // Force re-selection
                 window.location.href = "/monitoring";
               }}
             >
@@ -304,6 +305,7 @@ const UsersManager: React.FC = () => {
             onClick={() => {
               localStorage.removeItem("mimic_user_id");
               localStorage.removeItem("mimic_user_role");
+              localStorage.removeItem("bronzedge_active_org_id");
               window.location.reload();
             }}
           >
