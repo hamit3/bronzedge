@@ -3,10 +3,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_KEY, SUPABASE_URL } from "./constants";
 
 const getHeaders = () => {
-  // We no longer send mimic headers to the database. 
-  // This ensures the Admin retains their RLS permissions (power) while mimicking.
-  // Mimicking is now handled entirely at the UI level via identity and org state.
-  return {};
+  if (typeof window === "undefined") return {};
+  
+  const headers: Record<string, string> = {};
+  const mimicId = localStorage.getItem("mimic_user_id");
+  
+  if (mimicId) {
+    // Standard header for Supabase RLS mimicry support
+    headers["x-mimic-user-id"] = mimicId;
+  }
+  
+  return headers;
 };
 
 export const supabaseClient: SupabaseClient = createClient(

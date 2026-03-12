@@ -30,7 +30,7 @@ const authProvider: AuthProvider = {
       const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password,
-      });
+        });
 
       if (error) {
         console.error("Supabase Login Error:", error.message, error.status);
@@ -166,6 +166,12 @@ const authProvider: AuthProvider = {
     };
   },
   logout: async () => {
+    // Clear mimic data on logout
+    localStorage.removeItem("mimic_user_id");
+    localStorage.removeItem("mimic_user_name");
+    localStorage.removeItem("mimic_user_email");
+    localStorage.removeItem("mimic_user_role");
+
     const { error } = await supabaseClient.auth.signOut();
 
     if (error) {
@@ -190,6 +196,12 @@ const authProvider: AuthProvider = {
       const { session } = data;
 
       if (!session) {
+        // Clear mimic data if session is lost
+        localStorage.removeItem("mimic_user_id");
+        localStorage.removeItem("mimic_user_name");
+        localStorage.removeItem("mimic_user_email");
+        localStorage.removeItem("mimic_user_role");
+
         return {
           authenticated: false,
           error: {
@@ -217,60 +229,76 @@ const authProvider: AuthProvider = {
     };
   },
   getPermissions: async () => {
-    const { data } = await supabaseClient.auth.getUser();
+    try {
+      const { data: authData } = await supabaseClient.auth.getUser();
+      if (!authData?.user) return null;
 
-    if (data?.user) {
       const { data: profile } = await supabaseClient
         .from("profiles")
         .select("role")
-        .eq("id", data.user.id)
-        .single();
-      return profile?.role || "user";
+        .eq("id", authData.user.id)
+        .maybeSingle();
+      
+      const role = profile?.role || "user";
+      return role;
+    } catch (e) {
+      console.error("[Auth] getPermissions Error:", e);
+      return "user";
     }
-
-    return null;
   },
   getIdentity: async () => {
-    const { data } = await supabaseClient.auth.getUser();
+    try {
+      const { data: authData } = await supabaseClient.auth.getUser();
+      if (!authData?.user) return null;
 
-    if (data?.user) {
-      // Check for mimicked user
-      const mimicUserId = localStorage.getItem("mimic_user_id");
-      if (mimicUserId) {
-         const { data: mimicProfile } = await supabaseClient
-          .from("profiles")
-          .select("*")
-          .eq("id", mimicUserId)
-          .single();
-         
-         if (mimicProfile) {
-           return {
-             ...mimicProfile,
-             id: mimicProfile.id,
-             name: mimicProfile.full_name || mimicProfile.email,
-             email: mimicProfile.email,
-             avatar_url: mimicProfile.avatar_url,
-             isMimicked: true,
-           };
-         }
-      }
-
-      const { data: profile } = await supabaseClient
+      const { data: realProfile } = await supabaseClient
         .from("profiles")
         .select("*")
-        .eq("id", data.user.id)
-        .single();
+        .eq("id", authData.user.id)
+        .maybeSingle();
 
-      return {
-        ...data.user,
-        ...profile,
-        name: profile?.full_name || data.user.user_metadata?.full_name || data.user.email,
-        email: profile?.email || data.user.email,
-        avatar_url: profile?.avatar_url || data.user.user_metadata?.avatar_url,
+      const realRole = realProfile?.role || "user";
+      const mimicId = localStorage.getItem("mimic_user_id");
+
+      if (mimicId) {
+        const { data: mimicProfile } = await supabaseClient
+          .from("profiles")
+          .select("*")
+          .eq("id", mimicId)
+          .maybeSingle();
+
+        const identity = {
+          ...authData.user,
+          ...(mimicProfile || {}),
+          id: mimicId, // Use mimic ID for filtering
+          name: mimicProfile?.full_name || localStorage.getItem("mimic_user_name") || authData.user.email,
+          email: mimicProfile?.email || localStorage.getItem("mimic_user_email") || authData.user.email,
+          role: mimicProfile?.role || "user",
+          isMimicked: true,
+          realId: authData.user.id,
+          realRole: realRole,
+        };
+        console.log("[Auth] Mimic Active:", identity.id, "| Real Role:", realRole);
+        return identity;
+      }
+
+      const identity = {
+        ...authData.user,
+        ...realProfile,
+        id: authData.user.id,
+        name: realProfile?.full_name || authData.user.email,
+        email: realProfile?.email || authData.user.email,
+        role: realRole,
+        isMimicked: false,
+        realId: authData.user.id,
+        realRole: realRole,
       };
+      console.log("[Auth] Normal Identity Active:", identity.id);
+      return identity;
+    } catch (e) {
+      console.error("[Auth] Identity error:", e);
+      return null;
     }
-
-    return null;
   },
 };
 

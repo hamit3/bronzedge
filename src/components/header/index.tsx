@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useGetIdentity, useList, useLogout, useMenu } from "@refinedev/core";
+import { useGetIdentity, useList, useLogout, useMenu, usePermissions } from "@refinedev/core";
 import dayjs from "dayjs";
 import {
   Layout,
@@ -48,38 +48,51 @@ function useIsMobile(breakpoint = 768) {
 
 export const Header: React.FC = () => {
   const { token } = useToken();
-  const { data: user } = useGetIdentity<any>();
+  const { data: user, isLoading: userLoading } = useGetIdentity<any>();
   const { mutate: logout } = useLogout();
   const { menuItems } = useMenu();
   const navigate = useNavigate();
   const { activeOrgId, setActiveOrgId } = useOrganization();
   const isMobile = useIsMobile();
+  const { data: role, isLoading: roleLoading } = usePermissions<string>({});
+  
+  // isAdmin: use the realRole for stable admin power during mimicry
+  const isAdmin = user?.realRole === "admin" || (role === "admin");
 
   const [options, setOptions] = useState<{ label: string; value: string }[]>([]);
 
-  // Fetch all orgs the user belongs to (for switcher)
+  // 1. Fetch memberships for the current identity (self or mimicked)
   const memberListResult = useList({
     resource: "organization_members",
     filters: user?.id
       ? [{ field: "user_id", operator: "eq", value: user.id }]
       : [],
-    pagination: { pageSize: 50 },
+    pagination: { pageSize: 200 },
     queryOptions: { enabled: !!user?.id },
   });
-  const memberships = (memberListResult.query.data?.data ?? []) as any[];
+  
+  const memberships = (memberListResult.result?.data ?? []) as any[];
   const orgIds = memberships.map((m) => m.organization_id);
+
+  // 2. Fetch actual organization details
+  const isMembershipsLoading = memberListResult.query.isLoading;
 
   const orgsListResult = useList({
     resource: "organizations",
-    filters:
-      orgIds.length > 0
+    filters: isAdmin
+      ? [] // Admins see everything
+      : (orgIds.length > 0)
         ? [{ field: "id", operator: "in", value: orgIds }]
         : [{ field: "id", operator: "eq", value: "00000000-0000-0000-0000-000000000000" }],
-    pagination: { pageSize: 50 },
-    queryOptions: { enabled: orgIds.length > 0 },
+    pagination: { pageSize: 250 },
+    queryOptions: { 
+      // If admin, we can fetch all immediately. If not, wait for membership IDs.
+      enabled: !!user?.id && (isAdmin || (!isMembershipsLoading && orgIds.length >= 0))
+    },
   });
-  const orgsLoading = orgsListResult.query.isLoading;
-  const orgs = (orgsListResult.query.data?.data ?? []) as any[];
+  
+  const orgsLoading = orgsListResult.query.isLoading || userLoading || (isMembershipsLoading && !isAdmin);
+  const orgs = (orgsListResult.result?.data ?? []) as any[];
 
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
 

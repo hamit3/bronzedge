@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Table, Space, Tag, Typography, Badge } from "antd";
 import { useUpdate } from "@refinedev/core";
 import { useTable } from "@refinedev/antd";
@@ -61,9 +61,21 @@ export const EventsTab: React.FC<EventsTabProps> = ({
             ]
         },
         pagination: { pageSize: 10 },
+        queryOptions: {
+            enabled: !!activeOrgId,
+        },
         // Important: manually trigger filter updates when props change
         syncWithLocation: false,
     });
+
+    useEffect(() => {
+        console.log("[EventsTab] State:", {
+            activeOrgId,
+            loading: tableProps.loading,
+            count: tableProps.dataSource?.length,
+            error: (tableProps as any).queryResult?.error
+        });
+    }, [activeOrgId, tableProps.loading, tableProps.dataSource]);
 
     const { mutate: mutateUpdate } = useUpdate();
 

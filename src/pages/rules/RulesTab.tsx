@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Table, Button, Switch, Tag, Space, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useDelete, useUpdate } from "@refinedev/core";
@@ -31,7 +31,21 @@ export const RulesTab = () => {
                 },
             ],
         },
+        queryOptions: {
+            enabled: !!activeOrgId,
+        },
+        // Important: manually trigger filter updates when props change
+        syncWithLocation: false,
     });
+
+    useEffect(() => {
+        console.log("[RulesTab] State:", {
+            activeOrgId,
+            loading: tableProps.loading,
+            count: tableProps.dataSource?.length,
+            error: (tableProps as any).queryResult?.error
+        });
+    }, [activeOrgId, tableProps.loading, tableProps.dataSource]);
 
     const { mutate: mutateDelete } = useDelete();
     const { mutate: mutateUpdate, mutation: updateMutation } = useUpdate();
