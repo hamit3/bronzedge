@@ -37,12 +37,12 @@ export const GeofencingPage: React.FC = () => {
     }
 
     return (
-        <div style={{ padding: "24px", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ padding: "24px", minHeight: "100vh" }}>
             <PageHeader
                 title="Geofencing"
                 subtitle="Define and manage geographical boundaries."
             />
-            <div style={{ flex: 1, overflowY: "auto", paddingBottom: "24px" }}>
+            <div style={{ marginTop: "24px", paddingBottom: "40px" }}>
                 <GeofencesTab
                     organizationId={activeOrgId ?? null}
                     isAdmin={isAdmin}

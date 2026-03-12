@@ -20,7 +20,6 @@ const MAP_OPTIONS: google.maps.MapOptions = {
     rotateControl: false,
     fullscreenControl: true,
     backgroundColor: "#1a2b3e", // Critical: prevents white flash while tiles load
-    minZoom: 3, // Roughly one world view
     styles: [
         { elementType: "geometry", stylers: [{ color: "#1a2b3e" }] },
         { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },

@@ -16,13 +16,15 @@ import { Autocomplete } from "@react-google-maps/api";
 
 const { Text, Title } = Typography;
 
-const darkMapStyles: google.maps.MapTypeStyle[] = [
+const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
     { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
     { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
     { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
     { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
     { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
 ];
+
+const MAP_CONTAINER_STYLE = { width: "100%", height: "600px", backgroundColor: "#1d2c4d" };
 
 interface GeofencesTabProps {
     organizationId: string | null;
@@ -61,6 +63,15 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
 
     const geofences = (geofencesQuery.data?.data || []) as any[];
     const isLoading = geofencesQuery.isLoading;
+
+    const mapOptions = useMemo<google.maps.MapOptions>(() => ({
+        styles: DARK_MAP_STYLES,
+        disableDefaultUI: false,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true,
+        backgroundColor: "#1d2c4d"
+    }), []);
 
     const onPolygonComplete = useCallback((polygon: google.maps.Polygon) => {
         polygon.setMap(null);
@@ -217,9 +228,9 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
     if (!isLoaded) return <div style={{ height: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}><Spin size="large" /></div>;
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "24px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             {/* Map Card */}
-            <div className="geofence-card shadow-premium" style={{ flex: 1.8, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: "500px" }}>
+            <div className="geofence-card shadow-premium" style={{ display: "flex", flexDirection: "column", overflow: "hidden", minHeight: "600px" }}>
                 <div style={{ 
                     padding: "16px 24px", 
                     backgroundColor: "rgba(13, 20, 36, 0.4)", 
@@ -253,9 +264,9 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
                     )}
                 </div>
 
-                <div style={{ flex: 1, position: "relative" }}>
+                <div style={{ position: "relative", height: "600px", backgroundColor: "#1d2c4d" }}>
                     <GoogleMap
-                        mapContainerStyle={{ width: "100%", height: "100%" }}
+                        mapContainerStyle={MAP_CONTAINER_STYLE}
                         center={mapCenter}
                         zoom={mapZoom}
                         onDragEnd={() => {
@@ -274,14 +285,7 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
                                 }
                             }
                         }}
-                        options={{ 
-                            styles: darkMapStyles, 
-                            disableDefaultUI: false,
-                            mapTypeControl: false,
-                            streetViewControl: false,
-                            fullscreenControl: false,
-                            minZoom: 2
-                        }}
+                        options={mapOptions}
                         onLoad={(map) => { mapRef.current = map; }}
                     >
                         {isDrawMode && (
@@ -336,7 +340,7 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
             </div>
 
             {/* Table Card */}
-            <div className="geofence-card shadow-premium" style={{ flex: 0.8, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <div className="geofence-card shadow-premium" style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 <div style={{ 
                     padding: "16px 24px", 
                     backgroundColor: "rgba(13, 20, 36, 0.4)", 
@@ -444,6 +448,9 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
                     color: rgba(255,255,255,0.85) !important;
                     font-size: 11px !important;
                     border-radius: 4px !important;
+                }
+                .shadow-premium {
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
                 }
             `}</style>
         </div>

@@ -23,94 +23,17 @@ interface PlaybackTabProps {
 
 const mapContainerStyle = {
     width: "100%",
-    height: "500px",
-    borderRadius: "8px",
+    height: "100%",
+    backgroundColor: "#1d2c4d",
 };
 
-const options = {
-    styles: [
-        { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-        { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-        { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-        {
-            featureType: "administrative.locality",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#d59563" }],
-        },
-        {
-            featureType: "poi",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#d59563" }],
-        },
-        {
-            featureType: "poi.park",
-            elementType: "geometry",
-            stylers: [{ color: "#263c3f" }],
-        },
-        {
-            featureType: "poi.park",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#6b9a76" }],
-        },
-        {
-            featureType: "road",
-            elementType: "geometry",
-            stylers: [{ color: "#38414e" }],
-        },
-        {
-            featureType: "road",
-            elementType: "geometry.stroke",
-            stylers: [{ color: "#212a37" }],
-        },
-        {
-            featureType: "road",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#9ca5b3" }],
-        },
-        {
-            featureType: "road.highway",
-            elementType: "geometry",
-            stylers: [{ color: "#746855" }],
-        },
-        {
-            featureType: "road.highway",
-            elementType: "geometry.stroke",
-            stylers: [{ color: "#1f2835" }],
-        },
-        {
-            featureType: "road.highway",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#f3d19c" }],
-        },
-        {
-            featureType: "transit",
-            elementType: "geometry",
-            stylers: [{ color: "#2f3948" }],
-        },
-        {
-            featureType: "transit.station",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#d59563" }],
-        },
-        {
-            featureType: "water",
-            elementType: "geometry",
-            stylers: [{ color: "#17263c" }],
-        },
-        {
-            featureType: "water",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#515c6d" }],
-        },
-        {
-            featureType: "water",
-            elementType: "labels.text.stroke",
-            stylers: [{ color: "#17263c" }],
-        },
-    ],
-    disableDefaultUI: true,
-    zoomControl: true,
-};
+const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
+    { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
+];
 
 export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -118,6 +41,15 @@ export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions })
     const [speed, setSpeed] = useState(1);
     const mapRef = useRef<google.maps.Map | null>(null);
     const intervalRef = useRef<any>(null);
+
+    const mapOptions = useMemo<google.maps.MapOptions>(() => ({
+        styles: DARK_MAP_STYLES,
+        disableDefaultUI: false,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true,
+        backgroundColor: "#1d2c4d"
+    }), []);
 
     const { isLoaded } = useJsApiLoader({
         id: "google-map-script",
@@ -176,15 +108,16 @@ export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions })
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-            <Card variant="borderless" styles={{ body: { padding: 0, overflow: 'hidden' } }}>
-                {isLoaded ? (
-                    <GoogleMap
-                        mapContainerStyle={mapContainerStyle}
-                        center={center}
-                        zoom={15}
-                        onLoad={(map) => { mapRef.current = map; }}
-                        options={options}
-                    >
+            <Card variant="borderless" styles={{ body: { padding: 0, overflow: 'hidden' } }} className="shadow-premium" style={{ borderRadius: 12 }}>
+                <div style={{ width: "100%", height: "600px", position: "relative", backgroundColor: "#1d2c4d" }}>
+                    {isLoaded ? (
+                        <GoogleMap
+                            mapContainerStyle={mapContainerStyle}
+                            center={center}
+                            zoom={15}
+                            onLoad={(map) => { mapRef.current = map; }}
+                            options={mapOptions}
+                        >
                         <Polyline
                             path={path}
                             options={{
@@ -232,11 +165,12 @@ export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions })
                             }}
                         />
                     </GoogleMap>
-                ) : (
-                    <div style={{ ...mapContainerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#141414' }}>
-                        <Text type="secondary">Loading Map...</Text>
-                    </div>
-                )}
+                    ) : (
+                        <div style={{ ...mapContainerStyle, height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1d2c4d' }}>
+                            <Text type="secondary">Loading Map...</Text>
+                        </div>
+                    )}
+                </div>
             </Card>
 
             <Card variant="borderless">
