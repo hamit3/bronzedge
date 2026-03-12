@@ -37,31 +37,18 @@ export const GeofencingPage: React.FC = () => {
     }
 
     return (
-        <div style={{ padding: "24px", minHeight: "100vh" }}>
+        <div style={{ padding: "24px", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <PageHeader
                 title="Geofencing"
                 subtitle="Define and manage geographical boundaries."
             />
-            <div className="account-card shadow-premium" style={{ height: "calc(100vh - 200px)" }}>
+            <div style={{ flex: 1, overflowY: "auto", paddingBottom: "24px" }}>
                 <GeofencesTab
                     organizationId={activeOrgId ?? null}
                     isAdmin={isAdmin}
                     isOperator={isOperator}
                 />
             </div>
-
-            <style>{`
-                .account-card {
-                  background: #0d1424;
-                  border: 1px solid rgba(255,255,255,0.06);
-                  border-radius: 8px;
-                  padding: 24px;
-                  overflow: hidden;
-                }
-                .shadow-premium {
-                  box-shadow: 0 4px 24px rgba(0,0,0,0.4) !important;
-                }
-            `}</style>
         </div>
     );
 };
