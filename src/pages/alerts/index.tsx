@@ -2,10 +2,10 @@ import React, { useMemo, useState } from "react";
 import { useList } from "@refinedev/core";
 import { List } from "@refinedev/antd";
 import { Table, Typography, Tag, Space, Card, Spin, Select, DatePicker, Segmented, ConfigProvider, theme } from "antd";
-import { 
-    WarningOutlined, 
-    InfoCircleOutlined, 
-    ExclamationCircleOutlined, 
+import {
+    WarningOutlined,
+    InfoCircleOutlined,
+    ExclamationCircleOutlined,
     FilterOutlined,
     CheckCircleOutlined,
     ThunderboltOutlined,
@@ -38,33 +38,33 @@ const { RangePicker } = DatePicker;
  */
 const getAlertTypeDetails = (type: any) => {
     const t = Number(type);
-    
+
     switch (t) {
         case 1:
             return { color: "#52c41a", label: "Online", icon: <CheckCircleOutlined /> };
         case 2:
-            return { color: "#faad14", label: "Reboot Warning", icon: <WarningOutlined /> };
+            return { color: "rgba(255,255,255,0.25)", label: "Reboot Warning", icon: <WarningOutlined /> };
         case 3:
             return { color: "#ff4d4f", label: "Going Offline", icon: <StopOutlined /> };
         case 4:
-            return { color: "#1890ff", label: "General Message", icon: <MailOutlined /> };
+            return { color: "rgba(255,255,255,0.25)", label: "General Message", icon: <MailOutlined /> };
         case 5:
-            return { color: "#f5222d", label: "Temp Limit", icon: <HeatMapOutlined /> };
+            return { color: "rgba(255,255,255,0.25)", label: "Temp Limit", icon: <HeatMapOutlined /> };
         case 6:
-            return { color: "#13c2c2", label: "Humidity Limit", icon: <CloudOutlined /> };
+            return { color: "rgba(255,255,255,0.25)", label: "Humidity Limit", icon: <CloudOutlined /> };
         case 7:
-            return { color: "#fadb14", label: "Low Battery", icon: <ThunderboltOutlined /> };
+            return { color: "rgba(255,255,255,0.25)", label: "Low Battery", icon: <ThunderboltOutlined /> };
         case 8:
-            return { color: "#eb2f96", label: "Shock/Vibration", icon: <AlertOutlined /> };
+            return { color: "rgba(255,255,255,0.25)", label: "Shock/Vibration", icon: <AlertOutlined /> };
         default:
-            if (t >= 9) return { color: "#722ed1", label: "Custom Alert", icon: <ExclamationCircleOutlined /> };
+            if (t >= 9) return { color: "rgba(255,255,255,0.25)", label: "Custom Alert", icon: <ExclamationCircleOutlined /> };
             return { color: "rgba(255,255,255,0.25)", label: `Type ${type}`, icon: <InfoCircleOutlined /> };
     }
 };
 
 export const AlertsPage: React.FC = () => {
     const { activeOrgId } = useOrganization();
-// ... (rest of the component state unchanged)
+    // ... (rest of the component state unchanged)
     // Filters
     const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
     const [quickFilter, setQuickFilter] = useState<string>("7d");
@@ -167,10 +167,10 @@ export const AlertsPage: React.FC = () => {
             render: (value: any) => {
                 const { color, icon, label } = getAlertTypeDetails(value);
                 return (
-                    <Tag 
+                    <Tag
                         bordered={false}
-                        style={{ 
-                            backgroundColor: `${color}15`, 
+                        style={{
+                            backgroundColor: `${color}15`,
                             color: color,
                             border: `1px solid ${color}30`,
                             borderRadius: "6px",
@@ -218,12 +218,12 @@ export const AlertsPage: React.FC = () => {
 
     return (
         <div style={{ padding: "24px", minHeight: "100vh" }}>
-            <PageHeader 
-                title="System Alerts" 
-                subtitle={`Monitor critical events across your fleet — ${new Date().toLocaleString('tr-TR')}`} 
+            <PageHeader
+                title="System Alerts"
+                subtitle={`Monitor critical events across your fleet — ${new Date().toLocaleString('tr-TR')}`}
             />
 
-            <FilterContainer 
+            <FilterContainer
                 title="Alert Filters"
                 extra={
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
