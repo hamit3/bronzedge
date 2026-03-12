@@ -21,16 +21,18 @@ import { OrganizationProvider } from "./contexts/organization";
 
 import {
   BarChartOutlined,
-  FileTextOutlined,
   UserOutlined,
   EnvironmentOutlined,
   BellOutlined,
   ThunderboltOutlined,
   UnorderedListOutlined,
   SettingOutlined,
+  HistoryOutlined,
+  LineChartOutlined,
 } from "@ant-design/icons";
 
-import { ReportList } from "./pages/reports";
+import { ActivityAnalysisPage } from "./pages/reports/ActivityAnalysisPage";
+import { LocationPlaybackPage } from "./pages/reports/LocationPlaybackPage";
 import { AlertsPage } from "./pages/alerts";
 import { Header } from "./components/header";
 import { ErrorPage } from "./pages/error";
@@ -231,11 +233,19 @@ function App() {
                       },
                     },
                     {
-                      name: "reports",
-                      list: "/reports",
+                      name: "activity-analysis",
+                      list: "/activity-analysis",
                       meta: {
-                        label: "Reports",
-                        icon: <BarChartOutlined />,
+                        label: "Activity Analysis",
+                        icon: <LineChartOutlined />,
+                      },
+                    },
+                    {
+                      name: "location-playback",
+                      list: "/location-playback",
+                      meta: {
+                        label: "Location Playback",
+                        icon: <HistoryOutlined />,
                       },
                     },
                     {
@@ -380,7 +390,8 @@ function App() {
                       />
                       <Route path="/monitoring" element={<ShowcasePage />} />
                       <Route path="/maps" element={<MapsPage />} />
-                      <Route path="/reports" element={<ReportList />} />
+                      <Route path="/activity-analysis" element={<ActivityAnalysisPage />} />
+                      <Route path="/location-playback" element={<LocationPlaybackPage />} />
                       <Route path="/alerts" element={<AlertsPage />} />
                       <Route path="/rules" element={<RulesPage />} />
                       <Route path="/events" element={<EventsPage />} />
