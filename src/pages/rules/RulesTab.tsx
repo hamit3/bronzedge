@@ -23,12 +23,19 @@ export const RulesTab = () => {
             ],
         },
         pagination: { pageSize: 10 },
+        sorters: {
+            initial: [
+                {
+                    field: "created_at",
+                    order: "desc",
+                },
+            ],
+        },
     });
 
     const { mutate: mutateDelete } = useDelete();
-    const { mutate: mutateUpdate } = useUpdate();
-
-    const rulesData = tableProps.dataSource || [];
+    const { mutate: mutateUpdate, mutation: updateMutation } = useUpdate();
+    const isUpdating = updateMutation?.isPending || false;
 
     const handleDelete = (id: string) => {
         mutateDelete({
@@ -37,12 +44,12 @@ export const RulesTab = () => {
         });
     };
 
-    const handleToggleStatus = (id: string, currentStatus: boolean) => {
+    const handleToggleStatus = (record: any) => {
         mutateUpdate({
             resource: "rules",
-            id,
+            id: record.id,
             values: {
-                is_active: !currentStatus,
+                is_active: !record.is_active,
             },
         });
     };
@@ -84,8 +91,20 @@ export const RulesTab = () => {
                         title: "Type",
                         dataIndex: "rule_type",
                         render: (type: string) => {
-                            const { label, color } = getRuleTypeDetails(type);
-                            return <Tag color={color}>{label}</Tag>;
+                            const { label } = getRuleTypeDetails(type);
+                            return (
+                                <Tag style={{
+                                    background: "rgba(255,255,255,0.06)",
+                                    border: "1px solid rgba(255,255,255,0.1)",
+                                    color: "rgba(255,255,255,0.65)",
+                                    borderRadius: "4px",
+                                    fontSize: "11px",
+                                    textTransform: "uppercase",
+                                    fontWeight: 500
+                                }}>
+                                    {label}
+                                </Tag>
+                            );
                         },
                     },
                     {
@@ -110,10 +129,11 @@ export const RulesTab = () => {
                     {
                         title: "Status",
                         dataIndex: "is_active",
-                        render: (isActive: boolean, record) => (
+                        render: (_, record: any) => (
                             <Switch
-                                checked={isActive}
-                                onChange={() => handleToggleStatus(record.id as string, isActive)}
+                                checked={record.is_active}
+                                loading={isUpdating && updateMutation?.variables?.id === record.id}
+                                onChange={() => handleToggleStatus(record)}
                             />
                         ),
                     },

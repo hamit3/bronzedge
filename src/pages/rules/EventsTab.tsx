@@ -142,10 +142,18 @@ export const EventsTab: React.FC<EventsTabProps> = ({
                         dataIndex: ["rules", "rule_type"],
                         width: 120,
                         render: (type: string) => {
-                            const { label, color } = getRuleTypeDetails(type);
+                            const { label } = getRuleTypeDetails(type);
                             return (
-                                <Tag color={color} style={{ borderRadius: 4, fontWeight: 600, border: 'none' }}>
-                                    {label?.toUpperCase()}
+                                <Tag style={{
+                                    background: "rgba(255,255,255,0.06)",
+                                    border: "1px solid rgba(255,255,255,0.1)",
+                                    color: "rgba(255,255,255,0.65)",
+                                    borderRadius: "4px",
+                                    fontSize: "11px",
+                                    textTransform: "uppercase",
+                                    fontWeight: 500
+                                }}>
+                                    {label}
                                 </Tag>
                             );
                         },

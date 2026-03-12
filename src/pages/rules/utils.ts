@@ -15,13 +15,17 @@ export const formatConfigSummary = (type: string, config: any, geofenceName?: st
 };
 
 export const RULE_TYPES = [
-    { value: "geofence_enter", label: "Geofence Enter", color: "blue" },
-    { value: "geofence_exit", label: "Geofence Exit", color: "orange" },
-    { value: "sensor_threshold", label: "Sensor Threshold", color: "red" },
-    { value: "night_movement", label: "Night Movement", color: "purple" },
-    { value: "weekend_movement", label: "Weekend Movement", color: "purple" },
+    { value: "geofence_enter", label: "Geofence Enter" },
+    { value: "geofence_exit", label: "Geofence Exit" },
+    { value: "sensor_threshold", label: "Sensor Threshold" },
+    { value: "night_movement", label: "Night Movement" },
+    { value: "weekend_movement", label: "Weekend Movement" },
 ];
 
 export const getRuleTypeDetails = (type: string) => {
-    return RULE_TYPES.find((t) => t.value === type) || { label: type, color: "default" };
+    const details = RULE_TYPES.find((t) => t.value === type);
+    return {
+        label: details?.label || type,
+        color: "default", // Neutral color for all
+    };
 };

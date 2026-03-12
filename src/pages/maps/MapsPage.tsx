@@ -171,9 +171,9 @@ export const MapsPage: React.FC = () => {
 
     return (
         <div style={{ height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", background: "transparent", overflow: "hidden", padding: "24px" }}>
-            <PageHeader 
-                title="Maps" 
-                subtitle={`Live location of your fleet — ${new Date().toLocaleString('tr-TR')}`} 
+            <PageHeader
+                title="Maps"
+                subtitle={`Live location of your fleet — ${new Date().toLocaleString('tr-TR')}`}
             />
 
             <div style={{
@@ -195,13 +195,13 @@ export const MapsPage: React.FC = () => {
 
             <div style={{ flex: 1, position: "relative" }}>
                 {devicesLoading && allDevices.length === 0 && (
-                    <div style={{ 
-                        position: 'absolute', 
-                        top: 20, 
-                        right: 20, 
-                        zIndex: 5, 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                    <div style={{
+                        position: 'absolute',
+                        top: 20,
+                        right: 20,
+                        zIndex: 5,
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: 10,
                         backgroundColor: "rgba(0,0,0,0.5)",
                         padding: "8px 16px",
