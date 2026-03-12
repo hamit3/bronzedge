@@ -52,6 +52,7 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
         resource: "geofences",
         filters: organizationId ? [{ field: "organization_id", operator: "eq", value: organizationId }] : [],
         pagination: { pageSize: 100 },
+        sorters: [{ field: "created_at", order: "desc" }],
         queryOptions: { enabled: !!organizationId },
     });
 
