@@ -50,10 +50,24 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
     }
 
-    const message = await req.json(); // device_messages row
-    if (!message.device_id) {
+    const rawMessage = await req.json();
+    // Support both direct table record and Webhook payload structure
+    const messageRecord = rawMessage.record ?? rawMessage;
+    
+    if (!messageRecord.device_id) {
         return new Response(JSON.stringify({ error: "No device_id in message" }), { status: 400 });
     }
+
+    // Extract values for rule evaluation (handle raw_messages structure)
+    // raw_messages has payload: { appId: "GNSS", data: { lat: 1.2, lng: 3.4 } }
+    const device_id = messageRecord.device_id;
+    const payload = messageRecord.payload || {};
+    const app_id = messageRecord.app_id || payload.appId || "UNKNOWN";
+    
+    // Attempt to find coordinates in various possible locations
+    const latitude = messageRecord.latitude || payload.data?.lat || payload.lat;
+    const longitude = messageRecord.longitude || payload.data?.lng || payload.lng;
+    const received_at = messageRecord.received_at || messageRecord.ts || new Date().toISOString();
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
@@ -62,7 +76,7 @@ Deno.serve(async (req) => {
         .from("rules")
         .select("*")
         .eq("is_active", true)
-        .or(`device_id.eq.${message.device_id},device_id.is.null`);
+        .or(`device_id.eq.${device_id},device_id.is.null`);
 
     if (rulesError || !rules) {
         console.error("Error fetching rules:", rulesError);
@@ -76,7 +90,8 @@ Deno.serve(async (req) => {
         let eventMessage = "";
 
         if (rule.rule_type === "sensor_threshold") {
-            const value = getNestedValue(message.payload, rule.config.field);
+            // Check if rule field matches appId or is a nested path
+            const value = getNestedValue(payload, rule.config.field);
             triggered = evaluate(value, rule.config.operator, rule.config.value);
             if (triggered) {
                 eventMessage = `${rule.config.field} ${rule.config.operator} ${rule.config.value} (actual: ${value})`;
@@ -86,30 +101,29 @@ Deno.serve(async (req) => {
         if (rule.rule_type === "geofence_enter" || rule.rule_type === "geofence_exit") {
             const { data: geofence } = await supabase
                 .from("geofences")
-                .select("id, name, geometry, coordinates")
+                .select("id, name, geometry, coordinates, radius")
                 .eq("id", rule.config.geofence_id)
                 .single();
 
-            if (geofence && message.latitude && message.longitude) {
+            if (geofence && latitude && longitude) {
                 // Find previous message to detect Enter / Exit transitions
-                const { data: prevMessages } = await supabase
-                    .from("device_messages")
-                    .select("latitude, longitude")
-                    .eq("device_id", message.device_id)
-                    .lt("received_at", message.received_at || new Date().toISOString())
-                    .order("received_at", { ascending: false })
+                const { data: prevReadings } = await supabase
+                    .from("gnss_readings")
+                    .select("lat, lng")
+                    .eq("device_id", device_id)
+                    .lt("ts", received_at)
+                    .order("ts", { ascending: false })
                     .limit(1);
 
-                const currentPoint = { lat: message.latitude, lng: message.longitude };
+                const currentPoint = { lat: Number(latitude), lng: Number(longitude) };
                 const coords = geofence.geometry?.coordinates?.[0] || geofence.coordinates || [];
-                // Map [lng, lat] to { lat, lng } if needed
                 const polygon = coords.map((c: any) => (Array.isArray(c) ? { lat: c[1], lng: c[0] } : c));
 
                 const isCurrentlyInside = isPointInPolygon(currentPoint, polygon);
 
                 let wasInside = false;
-                if (prevMessages && prevMessages.length > 0 && prevMessages[0].latitude && prevMessages[0].longitude) {
-                    const prevPoint = { lat: prevMessages[0].latitude, lng: prevMessages[0].longitude };
+                if (prevReadings && prevReadings.length > 0) {
+                    const prevPoint = { lat: Number(prevReadings[0].lat), lng: Number(prevReadings[0].lng) };
                     wasInside = isPointInPolygon(prevPoint, polygon);
                 }
 
@@ -124,24 +138,23 @@ Deno.serve(async (req) => {
         }
 
         if (rule.rule_type === "night_movement") {
-            const msgDate = new Date(message.received_at || new Date());
-            const hour = msgDate.getUTCHours(); // or local based on preferences, use UTC for now or localized
+            const msgDate = new Date(received_at);
+            const hour = msgDate.getUTCHours();
             const { start_hour, end_hour } = rule.config;
             const isNight =
                 start_hour > end_hour
                     ? hour >= start_hour || hour < end_hour
                     : hour >= start_hour && hour < end_hour;
 
-            triggered = isNight && message.latitude !== null;
+            triggered = isNight && latitude !== null;
             if (triggered) {
                 eventMessage = `Movement detected at night (${msgDate.toISOString()})`;
             }
         }
 
         if (rule.rule_type === "weekend_movement") {
-            const day = new Date(message.received_at || new Date()).getUTCDay();
-            // 0 = Sunday, 6 = Saturday
-            triggered = (day === 0 || day === 6) && message.latitude !== null;
+            const day = new Date(received_at).getUTCDay();
+            triggered = (day === 0 || day === 6) && latitude !== null;
             if (triggered) {
                 eventMessage = `Movement detected on weekend`;
             }
@@ -150,12 +163,12 @@ Deno.serve(async (req) => {
         if (triggered) {
             const { data, error } = await supabase.from("rule_events").insert({
                 rule_id: rule.id,
-                device_id: message.device_id,
+                device_id: device_id,
                 organization_id: rule.organization_id,
                 message: `[${rule.name}] ${eventMessage}`,
-                trigger_payload: message.payload,
-                latitude: message.latitude,
-                longitude: message.longitude,
+                trigger_payload: payload,
+                latitude: latitude,
+                longitude: longitude,
             });
             if (error) {
                 console.error("Failed to insert rule_event:", error);
