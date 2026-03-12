@@ -22,7 +22,7 @@ export const MapsPage: React.FC = () => {
     const [lastSeenFilter, setLastSeenFilter] = useState<string>("any");
     const [timeRange, setTimeRange] = useState<[Dayjs, Dayjs] | null>(null);
     const [mapCenter, setMapCenter] = useState({ lat: 20, lng: 0 }); // World center
-    const [mapZoom, setMapZoom] = useState(2); // World zoom
+    const [mapZoom, setMapZoom] = useState(3); // World zoom (min 3)
 
     const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
