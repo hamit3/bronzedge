@@ -34,22 +34,7 @@ dayjs.extend(relativeTime);
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-// Google Maps dark theme styles
-const darkMapStyles: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
-    { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#4b6878" }] },
-    { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#4b6878" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
-    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
-    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2c6675" }] },
-    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#255763" }] },
-    { featureType: "poi", elementType: "geometry", stylers: [{ color: "#283d6a" }] },
-    { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#023e58" }] },
-    { featureType: "transit", elementType: "labels.text.fill", stylers: [{ color: "#98a5be" }] },
-];
+import { COMMON_MAP_OPTIONS, MAP_LIBRARIES } from "../../utils/mapUtils";
 
 export const ShowcasePage: React.FC = () => {
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(undefined);
@@ -65,7 +50,7 @@ export const ShowcasePage: React.FC = () => {
     const { isLoaded: mapsLoaded } = useJsApiLoader({
         id: "google-map-script",
         googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-        libraries: ["drawing", "geometry", "places"] as any,
+        libraries: MAP_LIBRARIES,
     });
 
     // --- One week ago boundary (ISO string, computed once per render) ---
@@ -507,13 +492,12 @@ export const ShowcasePage: React.FC = () => {
                                         center={{ lat: mapData[0].y, lng: mapData[0].x }}
                                         zoom={6}
                                         options={{
+                                            ...COMMON_MAP_OPTIONS,
                                             mapTypeId: 'roadmap',
                                             disableDefaultUI: true,
                                             draggable: false,
                                             keyboardShortcuts: false,
                                             disableDoubleClickZoom: true,
-                                            scrollwheel: false,
-                                            styles: darkMapStyles,
                                         }}
                                     >
                                         <Marker

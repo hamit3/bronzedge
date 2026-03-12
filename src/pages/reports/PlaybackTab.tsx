@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { GoogleMap, Polyline, Marker, useJsApiLoader } from "@react-google-maps/api";
-import { Card, Button, Slider, Segmented, Row, Col, Typography, Empty, Space } from "antd";
+import { Card, Button, Slider, Segmented, Row, Col, Typography, Empty, Space, Spin } from "antd";
 import {
     PlayCircleOutlined,
     PauseCircleOutlined,
@@ -12,7 +12,7 @@ import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { DeviceMessage, Session } from "./types";
 import { isMovingAtTime } from "./utils";
 
-const libraries: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry", "places"];
+import { COMMON_MAP_OPTIONS, MAP_LIBRARIES } from "../../utils/mapUtils";
 
 const { Text } = Typography;
 
@@ -24,16 +24,8 @@ interface PlaybackTabProps {
 const mapContainerStyle = {
     width: "100%",
     height: "100%",
-    backgroundColor: "#1d2c4d",
+    backgroundColor: "#f8f9fa",
 };
-
-const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
-    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
-];
 
 export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -42,19 +34,10 @@ export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions })
     const mapRef = useRef<google.maps.Map | null>(null);
     const intervalRef = useRef<any>(null);
 
-    const mapOptions = useMemo<google.maps.MapOptions>(() => ({
-        styles: DARK_MAP_STYLES,
-        disableDefaultUI: false,
-        mapTypeControl: true,
-        streetViewControl: true,
-        fullscreenControl: true,
-        backgroundColor: "#1d2c4d"
-    }), []);
-
     const { isLoaded } = useJsApiLoader({
         id: "google-map-script",
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-        libraries: ["drawing", "geometry", "places"] as any,
+        libraries: MAP_LIBRARIES,
     });
 
     const path = useMemo(() => {
@@ -109,14 +92,14 @@ export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions })
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <Card variant="borderless" styles={{ body: { padding: 0, overflow: 'hidden' } }} className="shadow-premium" style={{ borderRadius: 12 }}>
-                <div style={{ width: "100%", height: "600px", position: "relative", backgroundColor: "#1d2c4d" }}>
+                <div style={{ width: "100%", height: "600px", position: "relative", backgroundColor: "#f8f9fa" }}>
                     {isLoaded ? (
                         <GoogleMap
                             mapContainerStyle={mapContainerStyle}
                             center={center}
                             zoom={15}
                             onLoad={(map) => { mapRef.current = map; }}
-                            options={mapOptions}
+                            options={COMMON_MAP_OPTIONS}
                         >
                         <Polyline
                             path={path}
@@ -166,12 +149,13 @@ export const PlaybackTab: React.FC<PlaybackTabProps> = ({ locations, sessions })
                         />
                     </GoogleMap>
                     ) : (
-                        <div style={{ ...mapContainerStyle, height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1d2c4d' }}>
-                            <Text type="secondary">Loading Map...</Text>
+                        <div style={{ ...mapContainerStyle, height: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8f9fa' }}>
+                            <Spin tip="Loading Map..." />
                         </div>
                     )}
                 </div>
             </Card>
+
 
             <Card variant="borderless">
                 <Row gutter={24} align="middle">

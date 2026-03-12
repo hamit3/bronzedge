@@ -4,12 +4,15 @@ import { GoogleMap, Marker } from "@react-google-maps/api";
 import { getRuleTypeDetails } from "./utils";
 import dayjs from "dayjs";
 
+import { COMMON_MAP_OPTIONS } from "../../utils/mapUtils";
+
 const { Text, Title } = Typography;
 
 const mapContainerStyle = {
     width: "100%",
     height: "200px",
     borderRadius: "8px",
+    backgroundColor: "#f8f9fa",
 };
 
 export const EventDetailModal = ({
@@ -78,6 +81,7 @@ export const EventDetailModal = ({
                         center={{ lat, lng }}
                         zoom={14}
                         options={{
+                            ...COMMON_MAP_OPTIONS,
                             disableDefaultUI: true,
                             zoomControl: true,
                         }}
@@ -89,3 +93,4 @@ export const EventDetailModal = ({
         </Modal>
     );
 };
+

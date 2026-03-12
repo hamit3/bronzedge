@@ -52,15 +52,16 @@ import { RulesMenuLabel } from "./pages/rules/RulesMenuLabel";
 import { AdminPanelPage } from "./pages/admin";
 import { DesktopOnlyWrapper } from "./components/DesktopOnlyWrapper";
 
-const libraries: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry", "places"];
+import { MAP_LIBRARIES } from "./utils/mapUtils";
 
 function App() {
   // Prevent Google Maps wrapper from removing the script on route changes
   // by holding a persistent reference to the loader at the root level.
+  // Use the common library list to prevent initialization conflicts.
   useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-    libraries,
+    libraries: MAP_LIBRARIES,
   });
 
   return (

@@ -14,17 +14,11 @@ import {
 import dayjs from "dayjs";
 import { Autocomplete } from "@react-google-maps/api";
 
+import { COMMON_MAP_OPTIONS, MAP_LIBRARIES } from "../../utils/mapUtils";
+
 const { Text, Title } = Typography;
 
-const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
-    { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#8ec3b9" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
-    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4e6d70" }] },
-];
-
-const MAP_CONTAINER_STYLE = { width: "100%", height: "600px", backgroundColor: "#1d2c4d" };
+const MAP_CONTAINER_STYLE = { width: "100%", height: "600px", backgroundColor: "#f8f9fa" };
 
 interface GeofencesTabProps {
     organizationId: string | null;
@@ -51,7 +45,7 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
     const { isLoaded } = useJsApiLoader({
         id: "google-map-script",
         googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-        libraries: ["drawing", "geometry", "places"] as any
+        libraries: MAP_LIBRARIES
     });
 
     const { query: geofencesQuery } = useList({
@@ -63,15 +57,6 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
 
     const geofences = (geofencesQuery.data?.data || []) as any[];
     const isLoading = geofencesQuery.isLoading;
-
-    const mapOptions = useMemo<google.maps.MapOptions>(() => ({
-        styles: DARK_MAP_STYLES,
-        disableDefaultUI: false,
-        mapTypeControl: true,
-        streetViewControl: true,
-        fullscreenControl: true,
-        backgroundColor: "#1d2c4d"
-    }), []);
 
     const onPolygonComplete = useCallback((polygon: google.maps.Polygon) => {
         polygon.setMap(null);
@@ -107,6 +92,7 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
         setIsModalVisible(true);
         setIsDrawMode(false);
     }, []);
+
 
     const handleSave = async () => {
         try {
@@ -264,7 +250,7 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
                     )}
                 </div>
 
-                <div style={{ position: "relative", height: "600px", backgroundColor: "#1d2c4d" }}>
+                <div style={{ position: "relative", height: "600px", backgroundColor: "#f8f9fa" }}>
                     <GoogleMap
                         mapContainerStyle={MAP_CONTAINER_STYLE}
                         center={mapCenter}
@@ -285,7 +271,7 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
                                 }
                             }
                         }}
-                        options={mapOptions}
+                        options={COMMON_MAP_OPTIONS}
                         onLoad={(map) => { mapRef.current = map; }}
                     >
                         {isDrawMode && (

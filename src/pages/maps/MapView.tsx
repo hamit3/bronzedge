@@ -1,41 +1,13 @@
 import React, { useCallback, useState } from "react";
-import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
+import { GoogleMap, useJsApiLoader, Marker, MarkerClusterer } from "@react-google-maps/api";
 import { getDeviceMarkerIcon } from "./utils";
 import { MapLoadingSkeleton } from "./MapLoadingSkeleton";
+import { COMMON_MAP_OPTIONS, MAP_LIBRARIES } from "../../utils/mapUtils";
 
 const containerStyle = {
     width: "100%",
     height: "100%",
-    backgroundColor: "#1a2b3e",
-};
-
-const LIBRARIES: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry", "places"];
-
-const MAP_OPTIONS: google.maps.MapOptions = {
-    disableDefaultUI: false,
-    zoomControl: true,
-    mapTypeControl: true,
-    scaleControl: true,
-    streetViewControl: true,
-    rotateControl: false,
-    fullscreenControl: true,
-    backgroundColor: "#1a2b3e", // Critical: prevents white flash while tiles load
-    styles: [
-        { elementType: "geometry", stylers: [{ color: "#1a2b3e" }] },
-        { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
-        { elementType: "labels.text.stroke", stylers: [{ color: "#1a2b3e" }] },
-        { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#374151" }] },
-        { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d1d5db" }] },
-        { featureType: "poi", stylers: [{ visibility: "off" }] },
-        { featureType: "road", elementType: "geometry", stylers: [{ color: "#2d3e50" }] },
-        { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
-        { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#3d4e60" }] },
-        { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#4b5563" }] },
-        { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
-        { featureType: "transit", stylers: [{ visibility: "off" }] },
-        { featureType: "water", elementType: "geometry", stylers: [{ color: "#111827" }] },
-        { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#374151" }] },
-    ],
+    backgroundColor: "#f8f9fa",
 };
 
 interface Device {
@@ -65,7 +37,7 @@ export const MapView: React.FC<MapViewProps> = ({
     const { isLoaded } = useJsApiLoader({
         id: "google-map-script",
         googleMapsApiKey: apiKey,
-        libraries: LIBRARIES,
+        libraries: MAP_LIBRARIES,
     });
 
     const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -106,25 +78,33 @@ export const MapView: React.FC<MapViewProps> = ({
                         zoom={zoom}
                         onLoad={onLoad}
                         onUnmount={onUnmount}
-                        options={MAP_OPTIONS}
+                        options={COMMON_MAP_OPTIONS}
                     >
-                        {devices.map((device) => {
-                            const location = deviceLocations?.[device.id];
-                            if (!location || isNaN(location.lat) || isNaN(location.lng)) return null;
+                        <MarkerClusterer>
+                            {(clusterer) =>
+                                <>
+                                    {devices.map((device) => {
+                                        const location = deviceLocations?.[device.id];
+                                        if (!location || isNaN(location.lat) || isNaN(location.lng)) return null;
 
-                            return (
-                                <Marker
-                                    key={device.id}
-                                    position={location}
-                                    icon={getDeviceMarkerIcon(window.google, device.is_active)}
-                                    onClick={() => onMarkerClick(device)}
-                                    title={device.name}
-                                />
-                            );
-                        })}
+                                        return (
+                                            <Marker
+                                                key={device.id}
+                                                position={location}
+                                                icon={getDeviceMarkerIcon(window.google, device.is_active)}
+                                                onClick={() => onMarkerClick(device)}
+                                                title={device.name}
+                                                clusterer={clusterer}
+                                            />
+                                        );
+                                    })}
+                                </>
+                            }
+                        </MarkerClusterer>
                     </GoogleMap>
                 </div>
             )}
         </div>
     );
 };
+
