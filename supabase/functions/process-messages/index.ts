@@ -195,6 +195,20 @@ serve(async (req) => {
     console.log("BODY_TYPE:", body.type)
     console.log("MESSAGES_COUNT:", body.messages?.length ?? 0)
 
+    // Supabase client
+    const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    )
+
+    if (body.type === "test") {
+        console.log("TEST_MESSAGE: nRF routing health check")
+        await supabase.from("nrf_health_checks").insert({
+            nrf_routing_ok: true,
+        })
+        return new Response(JSON.stringify({ ok: true }), { status: 200 })
+    }
+
     // Verification — otomatik
     if (body.verificationToken || body.messages?.[0]?.verificationToken) {
         const token = body.verificationToken ?? body.messages[0].verificationToken
@@ -210,12 +224,6 @@ serve(async (req) => {
             }
         )
     }
-
-    // Supabase client
-    const supabase = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    )
 
     // Her mesajı route et
     const messages = body.messages ?? []
