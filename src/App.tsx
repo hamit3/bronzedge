@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import { Refine, Authenticated } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
@@ -65,6 +66,23 @@ function App() {
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
     libraries: MAP_LIBRARIES,
   });
+
+  // Suppress ResizeObserver error which often occurs during rapid sidebar toggles with maps
+  React.useEffect(() => {
+    const handleError = (e: ErrorEvent) => {
+      if (e.message === "ResizeObserver loop limit exceeded") {
+        const resizeObserverErrDiv = document.getElementById("webpack-dev-server-client-overlay-div");
+        const resizeObserverErr = document.getElementById("webpack-dev-server-client-overlay");
+        const viteOverlay = document.querySelector("vite-error-overlay");
+        if (resizeObserverErr) resizeObserverErr.setAttribute("style", "display: none");
+        if (resizeObserverErrDiv) resizeObserverErrDiv.setAttribute("style", "display: none");
+        if (viteOverlay) (viteOverlay as HTMLElement).style.display = "none";
+        e.stopImmediatePropagation();
+      }
+    };
+    window.addEventListener("error", handleError);
+    return () => window.removeEventListener("error", handleError);
+  }, []);
 
   return (
     <BrowserRouter>
@@ -352,28 +370,37 @@ function App() {
                               />
                             )}
                             Title={({ collapsed }) => (
-                              <Link to="/monitoring" style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                padding: "12px 0",
-                                width: "100%",
-                                transition: "all 0.3s",
-                                textDecoration: "none"
-                              }}>
-                                {collapsed ? (
-                                  <img
-                                    src="/logo-icon.png"
-                                    alt="Icon"
-                                    style={{ width: "28px", height: "auto" }}
-                                  />
-                                ) : (
-                                  <img
-                                    src="/BronzEdge_Logo.png"
-                                    alt="Logo"
-                                    style={{ width: "140px", height: "auto" }}
-                                  />
-                                )}
+                              <Link 
+                                to="/monitoring" 
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  padding: "16px 0",
+                                  width: "100%",
+                                  height: "64px",
+                                  textDecoration: "none",
+                                  overflow: "hidden"
+                                }}
+                              >
+                                <img
+                                  src="/logo-icon.png"
+                                  alt="Icon"
+                                  style={{ 
+                                    width: "28px", 
+                                    height: "auto",
+                                    display: collapsed ? "block" : "none"
+                                  }}
+                                />
+                                <img
+                                  src="/BronzEdge_Logo.png"
+                                  alt="Logo"
+                                  style={{ 
+                                    width: "140px", 
+                                    height: "auto",
+                                    display: collapsed ? "none" : "block"
+                                  }}
+                                />
                               </Link>
                             )}
                           >
