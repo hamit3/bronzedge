@@ -53,7 +53,6 @@ import { EventsPage } from "./pages/events";
 import { RulesMenuLabel } from "./pages/rules/RulesMenuLabel";
 import { AdminPanelPage } from "./pages/admin";
 import { DesktopOnlyWrapper } from "./components/DesktopOnlyWrapper";
-import { StatusPage } from "./pages/status";
 
 import { MAP_LIBRARIES } from "./utils/mapUtils";
 
@@ -400,7 +399,6 @@ function App() {
                       <Route path="/devices-list" element={<DevicesPage />} />
                       <Route path="/geofencing" element={<GeofencingPage />} />
                       <Route path="/profile" element={<ProfilePage />} />
-                      <Route path="/status" element={<StatusPage />} />
                     </Route>
                     <Route
                       element={

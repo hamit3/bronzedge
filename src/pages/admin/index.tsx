@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   useList,
   useCreate,
@@ -35,12 +35,42 @@ import {
   LogoutOutlined,
   TeamOutlined,
   BarChartOutlined,
+  CheckCircleFilled,
+  CloseCircleFilled,
+  ClockCircleOutlined,
+  InfoCircleOutlined,
+  HeartOutlined,
   SyncOutlined,
+  ClusterOutlined,
+  CloudServerOutlined,
+  DatabaseOutlined,
+  GlobalOutlined,
 } from "@ant-design/icons";
 import { PageHeader } from "../../components/PageHeader";
 import { supabaseClient } from "../../providers/supabase-client";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 const { Text, Title } = Typography;
+
+interface HealthCheck {
+  id: number;
+  checked_at: string;
+  edge_function_ok: boolean;
+  database_ok: boolean;
+  web_app_ok: boolean;
+  overall_ok: boolean;
+  error_detail: string | null;
+}
+
+interface NRFHealthCheck {
+  id: number;
+  checked_at: string;
+  nrf_routing_ok: boolean;
+  error_detail: string | null;
+}
 
 export const AdminPanelPage: React.FC = () => {
   const { data: role, isLoading: roleLoading } = usePermissions<string>({});
@@ -106,12 +136,19 @@ export const AdminPanelPage: React.FC = () => {
               ),
               children: <UsersManager />,
             },
-            {
+             {
               key: "demo-visitors",
               label: (
                 <span><BarChartOutlined style={{ marginRight: 6 }} />Demo Visitors</span>
               ),
               children: <DemoVisitorsManager />,
+            },
+            {
+              key: "health",
+              label: (
+                <span><HeartOutlined style={{ marginRight: 6 }} />System Health</span>
+              ),
+              children: <SystemHealthManager />,
             },
           ]}
         />
@@ -526,3 +563,204 @@ const DemoVisitorsManager: React.FC = () => {
     </div>
   );
 };
+
+// --- System Health ---
+const SystemHealthManager: React.FC = () => {
+  const [checks, setChecks] = useState<HealthCheck[]>([]);
+  const [nrfLatest, setNrfLatest] = useState<NRFHealthCheck | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [triggering, setTriggering] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStatus = async () => {
+    try {
+      // Fetch main health checks
+      const { data, error: sbError } = await supabaseClient
+        .from('health_checks')
+        .select('*')
+        .gte('checked_at', dayjs().subtract(48, 'hour').toISOString())
+        .order('checked_at', { ascending: false })
+        .limit(150);
+
+      if (sbError) throw sbError;
+      setChecks(data || []);
+
+      // Fetch NRF health checks
+      const { data: nrfData, error: nrfError } = await supabaseClient
+        .from('nrf_health_checks')
+        .select('*')
+        .order('checked_at', { ascending: false })
+        .limit(1);
+
+      if (nrfError) throw nrfError;
+      setNrfLatest(nrfData?.[0] || null);
+    } catch (err: any) {
+      console.error("Health fetch error:", err);
+      setError(err.message || "Failed to fetch health status");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const triggerManualCheck = async () => {
+    setTriggering(true);
+    try {
+      const { error: insertError } = await supabaseClient
+        .from('manual_triggers')
+        .insert([{ type: 'health_check' }]);
+
+      if (insertError) throw insertError;
+      
+      // Wait for webhook to finish
+      setTimeout(fetchStatus, 4000);
+    } catch (err: any) {
+      console.error("Trigger error:", err);
+    } finally {
+      setTriggering(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 300000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const latest = checks[0];
+  const timelineData = useMemo(() => [...checks].reverse(), [checks]);
+
+  if (loading && checks.length === 0) return <div style={{ textAlign: 'center', padding: '40px' }}><Spin /></div>;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div>
+          <Title level={5} style={{ color: '#fff', margin: 0 }}>Infrastructure Nodes</Title>
+          <Text style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
+            Real-time status of platform components and cloud integrations.
+          </Text>
+        </div>
+        <Button 
+          size="small"
+          icon={<SyncOutlined spin={triggering} />} 
+          onClick={triggerManualCheck}
+          loading={triggering}
+          style={{ background: "rgba(248,134,1,0.1)", borderColor: "rgba(248,134,1,0.3)", color: "#f88601" }}
+        >
+          Run Manual Check
+        </Button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: 24 }}>
+        <HealthStatusCard 
+          title="NRF Routing" 
+          ok={nrfLatest?.nrf_routing_ok ?? true} 
+          icon={<ClusterOutlined />} 
+          subtitle="NRF Cloud Backend"
+        />
+        <HealthStatusCard 
+          title="Edge Functions" 
+          ok={latest?.edge_function_ok ?? true} 
+          icon={<CloudServerOutlined />} 
+          subtitle="API & Webhooks"
+        />
+        <HealthStatusCard 
+          title="Database" 
+          ok={latest?.database_ok ?? true} 
+          icon={<DatabaseOutlined />} 
+          subtitle="PostgreSQL Engine"
+        />
+        <HealthStatusCard 
+          title="Web Interface" 
+          ok={latest?.web_app_ok ?? true} 
+          icon={<GlobalOutlined />} 
+          subtitle="Edge CDN Nodes"
+        />
+      </div>
+
+      {/* Activity Timeline */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Title level={5} style={{ color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '1px', margin: 0, fontSize: 11 }}>
+            Activity (Last 48 Hours)
+          </Title>
+          {latest && (
+             <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>
+                Last checked: {dayjs(latest.checked_at).fromNow()}
+             </Text>
+          )}
+        </div>
+        <div style={{ 
+          background: 'rgba(255,255,255,0.02)', 
+          border: '1px solid rgba(255,255,255,0.06)', 
+          borderRadius: 12, 
+          padding: '16px 12px' 
+        }}>
+          <div style={{ display: 'flex', gap: 2, flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: 8 }}>
+            {timelineData.map((check) => (
+              <Tooltip 
+                key={check.id} 
+                title={
+                  <div style={{ fontSize: 10 }}>
+                    <strong>{dayjs(check.checked_at).format("MMM D, HH:mm")}</strong>
+                    <br />
+                    {check.overall_ok ? "Healthy" : "Issue Reported"}
+                    {check.error_detail && <><br /><span style={{ color: '#ef4444' }}>{check.error_detail}</span></>}
+                  </div>
+                }
+              >
+                <div style={{ 
+                  flex: '1 0 5px', 
+                  height: 20, 
+                  background: check.overall_ok ? '#22c55e' : '#ef4444',
+                  borderRadius: 2,
+                  opacity: check.overall_ok ? 0.6 : 1,
+                  transition: 'transform 0.2s',
+                  cursor: 'pointer'
+                }} 
+                className="timeline-block"
+                />
+              </Tooltip>
+            ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 4px 0', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+            <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>{dayjs().subtract(48, 'hour').format("MMM D")}</Text>
+            <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>Today</Text>
+          </div>
+        </div>
+      </div>
+      
+      <style>{`
+        .timeline-block:hover {
+          transform: scaleY(1.4);
+          opacity: 1 !important;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+const HealthStatusCard: React.FC<{ title: string; ok: boolean; icon: React.ReactNode; subtitle: string }> = ({ title, ok, icon, subtitle }) => (
+  <div style={{ 
+    background: 'rgba(255,255,255,0.02)', 
+    border: '1px solid rgba(255,255,255,0.06)', 
+    borderRadius: '12px', 
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px'
+  }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ color: '#f88601', fontSize: '20px' }}>{icon}</div>
+      {ok ? (
+        <Tag color="success" icon={<CheckCircleFilled />}>OPERATIONAL</Tag>
+      ) : (
+        <Tag color="error" icon={<CloseCircleFilled />}>DEGRADED</Tag>
+      )}
+    </div>
+    <div>
+      <Text strong style={{ display: 'block', color: '#fff', fontSize: '14px' }}>{title}</Text>
+      <Text style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)' }}>{subtitle}</Text>
+    </div>
+  </div>
+);

@@ -274,12 +274,6 @@ export const Header: React.FC = () => {
         label: "Admin Panel",
         icon: <SettingOutlined />,
         onClick: () => navigate("/admin"),
-      },
-      {
-        key: "status",
-        label: "System Health",
-        icon: <HeartOutlined />,
-        onClick: () => navigate("/status"),
       }
     ] : []),
     {
