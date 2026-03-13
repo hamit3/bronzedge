@@ -278,7 +278,6 @@ const authProvider: AuthProvider = {
           realId: authData.user.id,
           realRole: realRole,
         };
-        console.log("[Auth] Mimic Active:", identity.id, "| Real Role:", realRole);
         return identity;
       }
 
@@ -293,7 +292,6 @@ const authProvider: AuthProvider = {
         realId: authData.user.id,
         realRole: realRole,
       };
-      console.log("[Auth] Normal Identity Active:", identity.id);
       return identity;
     } catch (e) {
       console.error("[Auth] Identity error:", e);
