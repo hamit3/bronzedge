@@ -32,9 +32,11 @@ import {
   BankOutlined,
   DesktopOutlined,
   AimOutlined,
+  ExperimentOutlined,
 } from "@ant-design/icons";
 
 import { ActivityAnalysisPage } from "./pages/reports/ActivityAnalysisPage";
+import { EnvironmentAnalysisPage } from "./pages/reports/environment-analysis";
 import { LocationPlaybackPage } from "./pages/reports/LocationPlaybackPage";
 import { AlertsPage } from "./pages/alerts";
 import { Header } from "./components/header";
@@ -248,6 +250,14 @@ function App() {
                       },
                     },
                     {
+                      name: "environment-analysis",
+                      list: "/environment-analysis",
+                      meta: {
+                        label: "Environment",
+                        icon: <ExperimentOutlined />,
+                      },
+                    },
+                    {
                       name: "location-playback",
                       list: "/location-playback",
                       meta: {
@@ -422,6 +432,7 @@ function App() {
                       <Route path="/monitoring" element={<ShowcasePage />} />
                       <Route path="/maps" element={<MapsPage />} />
                       <Route path="/activity-analysis" element={<ActivityAnalysisPage />} />
+                      <Route path="/environment-analysis" element={<EnvironmentAnalysisPage />} />
                       <Route path="/location-playback" element={<LocationPlaybackPage />} />
                       <Route path="/alerts" element={<AlertsPage />} />
                       <Route path="/rules" element={<RulesPage />} />
