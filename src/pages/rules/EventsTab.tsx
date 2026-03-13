@@ -46,36 +46,31 @@ export const EventsTab: React.FC<EventsTabProps> = ({
         return tableFilters;
     };
 
-    const { tableProps } = useTable({
+    const { tableProps, setFilters } = useTable({
         resource: "rule_events",
         filters: {
             initial: generateFilters(),
-            permanent: [{ field: "organization_id", operator: "eq", value: activeOrgId }],
         },
         meta: {
             select: "*, rules(id, name, rule_type), devices(id, name)",
         },
         sorters: {
-            initial: [
-                { field: "triggered_at", order: "desc" }
-            ]
+            initial: [{ field: "triggered_at", order: "desc" }]
         },
         pagination: { pageSize: 10 },
         queryOptions: {
             enabled: !!activeOrgId,
         },
-        // Important: manually trigger filter updates when props change
         syncWithLocation: false,
     });
 
+    // Update filters when inputs change
     useEffect(() => {
-        console.log("[EventsTab] State:", {
-            activeOrgId,
-            loading: tableProps.loading,
-            count: tableProps.dataSource?.length,
-            error: (tableProps as any).queryResult?.error
-        });
-    }, [activeOrgId, tableProps.loading, tableProps.dataSource]);
+        if (activeOrgId) {
+            setFilters(generateFilters());
+        }
+    }, [activeOrgId, selectedDevices, dateRange, readStatus, setFilters]);
+
 
     const { mutate: mutateUpdate } = useUpdate();
 

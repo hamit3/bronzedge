@@ -9,8 +9,11 @@ const getHeaders = () => {
   const mimicId = localStorage.getItem("mimic_user_id");
   
   if (mimicId) {
-    // Standard header for Supabase RLS mimicry support
+    // Multiple variations to support different RLS policy implementations
     headers["x-mimic-user-id"] = mimicId;
+    headers["x-mimic-id"] = mimicId;
+    headers["x-user-id"] = mimicId;
+    console.log("[Supabase] Client initialized with Mimic Headers:", mimicId);
   }
   
   return headers;

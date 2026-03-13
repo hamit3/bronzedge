@@ -1,10 +1,12 @@
 import React from "react";
-import { Card, Typography } from "antd";
+import { Card } from "antd";
 import { RulesTab } from "./RulesTab";
-
+import { useOrganization } from "../../contexts/organization";
 import { PageHeader } from "../../components/PageHeader";
 
 export const RulesPage = () => {
+    const { activeOrgId } = useOrganization();
+
     return (
         <div style={{ padding: "24px", minHeight: "100vh" }}>
             <PageHeader 
@@ -12,7 +14,7 @@ export const RulesPage = () => {
                 subtitle={`Configure automation and alert triggers — ${new Date().toLocaleString('tr-TR')}`} 
             />
             <Card variant="borderless" className="shadow-premium">
-                <RulesTab />
+                <RulesTab key={activeOrgId} />
             </Card>
         </div>
     );

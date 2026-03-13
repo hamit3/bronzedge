@@ -135,6 +135,7 @@ export const EventsPage = () => {
 
             <Card variant="borderless" className="shadow-premium">
                 <EventsTab 
+                    key={activeOrgId}
                     selectedDevices={selectedDevice ? [selectedDevice] : []}
                     selectedTypes={selectedType ? [selectedType] : []}
                     dateRange={dateRange}

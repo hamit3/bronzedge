@@ -12,40 +12,30 @@ export const RulesTab = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingRule, setEditingRule] = useState<any>(null);
 
-    const { tableProps } = useTable({
+    const { tableProps, setFilters } = useTable({
         resource: "rules",
         filters: {
             initial: [
                 { field: "organization_id", operator: "eq", value: activeOrgId },
             ],
-            permanent: [
-                { field: "organization_id", operator: "eq", value: activeOrgId },
-            ],
         },
         pagination: { pageSize: 10 },
         sorters: {
-            initial: [
-                {
-                    field: "created_at",
-                    order: "desc",
-                },
-            ],
+            initial: [{ field: "created_at", order: "desc" }],
         },
         queryOptions: {
             enabled: !!activeOrgId,
         },
-        // Important: manually trigger filter updates when props change
         syncWithLocation: false,
     });
 
+    // Explicitly update filters when org changes
     useEffect(() => {
-        console.log("[RulesTab] State:", {
-            activeOrgId,
-            loading: tableProps.loading,
-            count: tableProps.dataSource?.length,
-            error: (tableProps as any).queryResult?.error
-        });
-    }, [activeOrgId, tableProps.loading, tableProps.dataSource]);
+        if (activeOrgId) {
+            setFilters([{ field: "organization_id", operator: "eq", value: activeOrgId }]);
+        }
+    }, [activeOrgId, setFilters]);
+
 
     const { mutate: mutateDelete } = useDelete();
     const { mutate: mutateUpdate, mutation: updateMutation } = useUpdate();
