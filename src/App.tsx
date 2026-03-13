@@ -53,6 +53,7 @@ import { EventsPage } from "./pages/events";
 import { RulesMenuLabel } from "./pages/rules/RulesMenuLabel";
 import { AdminPanelPage } from "./pages/admin";
 import { DesktopOnlyWrapper } from "./components/DesktopOnlyWrapper";
+import { StatusPage } from "./pages/status";
 
 import { MAP_LIBRARIES } from "./utils/mapUtils";
 
@@ -378,50 +379,6 @@ function App() {
                             )}
                           >
                             <Outlet />
-
-                            {/* Floating System Status */}
-                            <div
-                              style={{
-                                position: "fixed",
-                                bottom: "24px",
-                                right: "24px",
-                                zIndex: 1000,
-                                pointerEvents: "none",
-                              }}
-                            >
-                              <Tooltip
-                                title="System Health: Operational"
-                                placement="left"
-                              >
-                                <div
-                                  style={{
-                                    pointerEvents: "auto",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "10px",
-                                    padding: "6px 14px",
-                                    backgroundColor: "rgba(13, 20, 36, 0.7)",
-                                    backdropFilter: "blur(8px)",
-                                    borderRadius: "20px",
-                                    border: "1px solid rgba(82, 196, 26, 0.3)",
-                                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-                                    cursor: "help",
-                                  }}
-                                >
-                                  <Badge status="processing" color="#52c41a" />
-                                  <span
-                                    style={{
-                                      color: "#52c41a",
-                                      fontSize: "11px",
-                                      fontWeight: 600,
-                                      letterSpacing: "0.5px",
-                                    }}
-                                  >
-                                    HEALTHY
-                                  </span>
-                                </div>
-                              </Tooltip>
-                            </div>
                           </ThemedLayout>
                         </Authenticated>
                       }
@@ -443,6 +400,7 @@ function App() {
                       <Route path="/devices-list" element={<DevicesPage />} />
                       <Route path="/geofencing" element={<GeofencingPage />} />
                       <Route path="/profile" element={<ProfilePage />} />
+                      <Route path="/status" element={<StatusPage />} />
                     </Route>
                     <Route
                       element={

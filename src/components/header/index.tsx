@@ -30,6 +30,7 @@ import {
   EyeOutlined,
   CloseCircleOutlined,
   SettingOutlined,
+  HeartOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router";
 import { useOrganization } from "../../contexts/organization";
@@ -273,6 +274,12 @@ export const Header: React.FC = () => {
         label: "Admin Panel",
         icon: <SettingOutlined />,
         onClick: () => navigate("/admin"),
+      },
+      {
+        key: "status",
+        label: "System Health",
+        icon: <HeartOutlined />,
+        onClick: () => navigate("/status"),
       }
     ] : []),
     {
