@@ -16,9 +16,9 @@ const { Text } = Typography;
 export const LocationPlaybackPage: React.FC = () => {
     const { activeOrgId } = useOrganization();
     const [selectedDevice, setSelectedDevice] = useState<any | null>(null);
-    const [quickFilter, setQuickFilter] = useState<string>("all");
+    const [quickFilter, setQuickFilter] = useState<string>("24h");
     const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
-        dayjs().subtract(30, "day").startOf("day"),
+        dayjs().subtract(24, "hour"),
         dayjs().endOf("day"),
     ]);
 
@@ -33,6 +33,18 @@ export const LocationPlaybackPage: React.FC = () => {
 
     const devices = (devicesQuery.data?.data || []) as any[];
     const isLoadingDevices = devicesQuery.isLoading;
+
+    // Auto-select first device with a slight delay to allow smooth page transitions
+    React.useEffect(() => {
+        if (!isLoadingDevices && devices.length > 0 && !selectedDevice) {
+            const timer = setTimeout(() => {
+                React.startTransition(() => {
+                    setSelectedDevice(devices[0]);
+                });
+            }, 500); // 500ms delay to ensure menu/page transition is finished
+            return () => clearTimeout(timer);
+        }
+    }, [isLoadingDevices, devices.length, !!selectedDevice]);
 
     // Fetch locations from gnss_readings
     const { query: locationsQuery } = useList<any>({

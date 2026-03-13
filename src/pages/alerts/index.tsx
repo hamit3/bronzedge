@@ -67,9 +67,9 @@ export const AlertsPage: React.FC = () => {
     // ... (rest of the component state unchanged)
     // Filters
     const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
-    const [quickFilter, setQuickFilter] = useState<string>("7d");
+    const [quickFilter, setQuickFilter] = useState<string>("24h");
     const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>([
-        dayjs().subtract(7, "day").startOf("day"),
+        dayjs().subtract(24, "hour"),
         dayjs().endOf("day")
     ]);
 

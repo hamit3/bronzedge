@@ -16,9 +16,9 @@ export const EventsPage = () => {
     // Filters State
     const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
     const [selectedType, setSelectedType] = useState<string | null>(null);
-    const [quickFilter, setQuickFilter] = useState<string>("7d");
+    const [quickFilter, setQuickFilter] = useState<string>("24h");
     const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>([
-        dayjs().subtract(7, "day").startOf("day"),
+        dayjs().subtract(24, "hour"),
         dayjs().endOf("day")
     ]);
 
