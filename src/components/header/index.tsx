@@ -29,6 +29,7 @@ import {
   CheckOutlined,
   EyeOutlined,
   CloseCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router";
 import { useOrganization } from "../../contexts/organization";
@@ -266,6 +267,14 @@ export const Header: React.FC = () => {
       icon: <UserOutlined />,
       onClick: () => navigate("/profile"),
     },
+    ...(isAdmin ? [
+      {
+        key: "admin",
+        label: "Admin Panel",
+        icon: <SettingOutlined />,
+        onClick: () => navigate("/admin"),
+      }
+    ] : []),
     {
       key: "logout",
       label: user?.isMimicked ? "Stop Mimicking" : "Logout",

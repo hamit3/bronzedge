@@ -295,6 +295,7 @@ function App() {
                       meta: {
                         label: "Admin",
                         icon: <SettingOutlined />,
+                        hide: true, // Hide from sidebar
                       },
                     },
                     {
