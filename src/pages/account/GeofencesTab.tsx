@@ -122,9 +122,20 @@ export const GeofencesTab: React.FC<GeofencesTabProps> = ({ organizationId, isAd
     };
 
     const handleDelete = (id: string) => {
-        deleteGeofence({ resource: "geofences", id }, {
-            onSuccess: () => message.success("Geofence deleted"),
-        });
+        deleteGeofence(
+            { 
+                resource: "geofences", 
+                id,
+                mutationMode: "pessimistic"
+            }, 
+            {
+                onSuccess: () => message.success("Geofence deleted successfully"),
+                onError: (err: any) => {
+                    console.error("[GeofencesTab] Delete Error:", err);
+                    message.error(`Delete failed: ${err.message || "Unauthorized or constrained"}`);
+                }
+            }
+        );
     };
 
     const focusGeofence = (gf: any) => {

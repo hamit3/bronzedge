@@ -217,11 +217,23 @@ export const DevicesTab: React.FC<DevicesTabProps> = ({
 
     const handleDelete = (id: string) => {
         deleteDevice(
-            { resource: "devices", id },
+            { 
+                resource: "devices", 
+                id,
+                mutationMode: "pessimistic"
+            },
             {
-                onSuccess: () => open?.({ type: "success", message: "Device deleted." }),
-                onError: (err: any) =>
-                    open?.({ type: "error", message: `Delete failed: ${err.message}` }),
+                onSuccess: () => {
+                    open?.({ type: "success", message: "Device deleted successfully." });
+                },
+                onError: (err: any) => {
+                    console.error("[DevicesTab] Delete Error:", err);
+                    open?.({ 
+                        type: "error", 
+                        message: "Delete failed", 
+                        description: err?.message || "There was an error deleting the device. Please check your permissions."
+                    });
+                },
             }
         );
     };
