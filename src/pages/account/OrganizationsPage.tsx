@@ -1,6 +1,9 @@
-import React from "react";
 import { OrganizationTab } from "./OrganizationTab";
 import { PageHeader } from "../../components/PageHeader";
+import { Alert, Typography } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
+
+const { Link } = Typography;
 
 export const OrganizationsPage: React.FC = () => {
     return (
@@ -9,6 +12,28 @@ export const OrganizationsPage: React.FC = () => {
                 title="Organizations"
                 subtitle="Manage your organizations and memberships."
             />
+
+            <Alert
+                message="Organization Management"
+                description={
+                    <span>
+                        You do not have permission to delete organizations directly. If you need to remove an organization or change its ownership, please contact us at{" "}
+                        <Link href="mailto:support@bronzedge.com" style={{ color: "#f88601" }}>
+                            support@bronzedge.com
+                        </Link>
+                    </span>
+                }
+                type="info"
+                showIcon
+                icon={<InfoCircleOutlined style={{ color: "#f88601" }} />}
+                style={{
+                    marginBottom: "24px",
+                    background: "rgba(248, 134, 1, 0.05)",
+                    border: "1px solid rgba(248, 134, 1, 0.2)",
+                    borderRadius: "8px",
+                }}
+            />
+
             <div className="account-card shadow-premium">
                 <OrganizationTab />
             </div>
