@@ -258,6 +258,14 @@ const authProvider: AuthProvider = {
         .maybeSingle();
 
       const realRole = realProfile?.role || "user";
+      
+      // Update/Sync local storage with latest from DB
+      if (realProfile?.avatar_url) {
+        localStorage.setItem(`bronzedge_avatar_${authData.user.id}`, realProfile.avatar_url);
+      }
+      
+      const cachedAvatar = localStorage.getItem(`bronzedge_avatar_${authData.user.id}`);
+
       const mimicId = localStorage.getItem("mimic_user_id");
 
       if (mimicId) {
@@ -267,6 +275,8 @@ const authProvider: AuthProvider = {
           .eq("id", mimicId)
           .maybeSingle();
 
+        const mimicAvatar = mimicProfile?.avatar_url || localStorage.getItem(`bronzedge_avatar_${mimicId}`);
+
         const identity = {
           ...authData.user,
           ...(mimicProfile || {}),
@@ -274,6 +284,7 @@ const authProvider: AuthProvider = {
           name: mimicProfile?.full_name || localStorage.getItem("mimic_user_name") || authData.user.email,
           email: mimicProfile?.email || localStorage.getItem("mimic_user_email") || authData.user.email,
           role: mimicProfile?.role || "user",
+          avatar_url: mimicAvatar,
           isMimicked: true,
           realId: authData.user.id,
           realRole: realRole,
@@ -287,6 +298,7 @@ const authProvider: AuthProvider = {
         id: authData.user.id,
         name: realProfile?.full_name || authData.user.email,
         email: realProfile?.email || authData.user.email,
+        avatar_url: realProfile?.avatar_url || cachedAvatar,
         role: realRole,
         isMimicked: false,
         realId: authData.user.id,

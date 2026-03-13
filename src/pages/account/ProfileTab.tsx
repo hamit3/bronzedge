@@ -12,6 +12,7 @@ import {
     Upload,
     Divider,
     App,
+    Tag,
 } from "antd";
 import {
     KeyOutlined,
@@ -80,6 +81,9 @@ export const ProfileTab: React.FC = () => {
                 .eq('id', identity.realId || identity.id);
 
             if (updateError) throw updateError;
+
+            // Cache in local storage for instant loading
+            localStorage.setItem(`bronzedge_avatar_${identity.realId || identity.id}`, publicUrl);
 
             message.success("Profile photo updated successfully!");
             onSuccess("ok");
@@ -159,7 +163,15 @@ export const ProfileTab: React.FC = () => {
                 </div>
                 <div>
                     <Title level={4} style={{ margin: 0, color: '#fff' }}>{displayName}</Title>
-                    <Text type="secondary" style={{ fontSize: 13 }}>{identity?.role?.toUpperCase()} | {email}</Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                        <Tag 
+                            color={identity?.role === 'admin' ? 'volcano' : 'blue'} 
+                            style={{ margin: 0, fontSize: 10, fontWeight: 700 }}
+                        >
+                            {identity?.role === 'admin' ? 'SYSTEM ADMINISTRATOR' : 'STANDARD USER'}
+                        </Tag>
+                        <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>{email}</span>
+                    </div>
                 </div>
             </div>
 

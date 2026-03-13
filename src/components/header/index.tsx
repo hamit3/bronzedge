@@ -240,12 +240,19 @@ export const Header: React.FC = () => {
       label: (
         <div style={{ padding: "4px 12px" }}>
           <Text strong style={{ display: "block" }}>
-            {user?.email}
+            {user?.name || user?.email}
           </Text>
-          <Text type="secondary" style={{ fontSize: "12px" }}>
-            {memberships.find((m) => m.organization_id === activeOrgId)?.role ?? "—"}
+          <Text type="secondary" style={{ fontSize: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ color: "#f88601", fontWeight: 600 }}>
+              {memberships.find((m) => m.organization_id === activeOrgId)?.role?.toUpperCase() || "VIEWER"}
+            </span>
+            <span>•</span>
+            <span>Org Member</span>
+            {user?.realRole === "admin" && (
+              <Tag color="volcano" style={{ margin: 0, fontSize: "9px", lineHeight: "16px" }}>SYSTEM ADMIN</Tag>
+            )}
             {user?.isMimicked && (
-              <Tag color="green" style={{ marginLeft: 8, fontSize: "10px" }}>MIMICKING</Tag>
+              <Tag color="green" style={{ margin: 0, fontSize: "10px" }}>MIMICKING</Tag>
             )}
           </Text>
         </div>
