@@ -117,7 +117,7 @@ export const EnvironmentAnalysisPage: React.FC = () => {
 
     // Table Data (Combined for display)
     const tableData = useMemo(() => {
-        return bmeData.slice(-50).reverse(); // Last 50 readings
+        return [...bmeData].reverse(); // All available readings, reversed for latest first
     }, [bmeData]);
 
     const handleQuickFilter = (value: string) => {
@@ -321,7 +321,7 @@ export const EnvironmentAnalysisPage: React.FC = () => {
                          <Table
                             dataSource={tableData}
                             rowKey="reading_id"
-                            pagination={{ pageSize: 15, position: ['bottomCenter'], current: 1 }}
+                            pagination={{ pageSize: 15, position: ['bottomCenter'] }}
                             size="middle"
                             className="premium-dark-table account-table"
                             columns={[
