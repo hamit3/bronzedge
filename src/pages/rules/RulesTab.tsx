@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Switch, Tag, Space, Popconfirm } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
-import { useDelete, useUpdate } from "@refinedev/core";
+import { useDelete, useUpdate, useList } from "@refinedev/core";
 import { useTable } from "@refinedev/antd";
 import { useOrganization } from "../../contexts/organization";
 import { RuleForm } from "./RuleForm";
@@ -11,6 +11,39 @@ export const RulesTab = () => {
     const { activeOrgId } = useOrganization();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingRule, setEditingRule] = useState<any>(null);
+
+    // Fetch lists separately to map IDs to names since we have schema relationship issues
+    // Fetch geofences to map IDs to names. 
+    // We fetch ALL geofences available to the user (Admin will see all)
+    // to ensure mapping works even if org filtering is tricky during mimicry.
+    const geofencesQuery = useList({
+        resource: "geofences",
+        pagination: { pageSize: 1000 },
+        queryOptions: { enabled: !!activeOrgId },
+    });
+
+    const devicesQuery = useList({
+        resource: "devices",
+        filters: [{ field: "organization_id", operator: "eq", value: activeOrgId }],
+        queryOptions: { enabled: !!activeOrgId },
+    });
+
+    const deviceMap = React.useMemo(() => {
+        const map: Record<string, string> = {};
+        devicesQuery.query.data?.data?.forEach((d: any) => {
+            map[d.id] = d.name;
+        });
+        return map;
+    }, [devicesQuery.query.data]);
+
+    const geofenceMap = React.useMemo(() => {
+        const map: Record<string, string> = {};
+        const list = geofencesQuery.query.data?.data || [];
+        list.forEach((gf: any) => {
+            map[gf.id] = gf.name;
+        });
+        return map;
+    }, [geofencesQuery.query.data]);
 
     const { tableProps, setFilters } = useTable({
         resource: "rules",
@@ -114,21 +147,31 @@ export const RulesTab = () => {
                     {
                         title: "Device",
                         dataIndex: ["device_id"],
-                        render: (deviceId: string, record: any) => {
-                            return deviceId ? (record.devices?.name || "Specific Device") : "All devices";
+                        render: (deviceId: string) => {
+                            return deviceId ? (deviceMap[deviceId] || "Specific Device") : "All devices";
                         },
                     },
                     {
                         title: "Condition",
-                        render: (_, record) => (
-                            <span>
-                                {formatConfigSummary(
-                                    record.rule_type,
-                                    record.config,
-                                    record.geofences?.name // assuming related data is fetched if possible, otherwise we may need to fetch geofences separately. We can leave it as ID if not fetched.
-                                )}
-                            </span>
-                        ),
+                        render: (_, record) => {
+                            try {
+                                const gId = record.config?.geofence_id;
+                                const gName = gId ? geofenceMap[gId] : undefined;
+                                
+                                return (
+                                    <span>
+                                        {formatConfigSummary(
+                                            record.rule_type,
+                                            record.config,
+                                            gName
+                                        )}
+                                    </span>
+                                );
+                            } catch (e) {
+                                console.error("[RulesTab] Render Error in Condition:", e, record);
+                                return <span style={{ color: 'red' }}>Error rendering condition</span>;
+                            }
+                        },
                     },
                     {
                         title: "Status",

@@ -13,7 +13,6 @@ const getHeaders = () => {
     headers["x-mimic-user-id"] = mimicId;
     headers["x-mimic-id"] = mimicId;
     headers["x-user-id"] = mimicId;
-    console.log("[Supabase] Client initialized with Mimic Headers:", mimicId);
   }
   
   return headers;

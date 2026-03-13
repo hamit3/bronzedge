@@ -177,16 +177,24 @@ export const Header: React.FC = () => {
   const orgDevices = (orgDevicesQuery.data?.data || []) as any[];
   const orgDeviceIds = orgDevices.map((d: any) => d.device_id).filter(Boolean);
 
+  // Fetch alerts count - memoize the timestamp to prevent infinite re-fetching loops
+  const alertSince = React.useMemo(() => {
+    // Round to the nearest minute to stabilize the query and prevent constant re-fetching
+    return dayjs().subtract(24, "hour").startOf("minute").toISOString();
+  }, [activeOrgId]); // Refresh when org changes, but not on every render
+
   const { query: alertsQuery } = useList({
     resource: "device_alerts",
     filters: [
-      { field: "ts", operator: "gte", value: dayjs().subtract(24, "hour").toISOString() },
+      { field: "ts", operator: "gte", value: alertSince },
       ...(orgDeviceIds.length > 0
         ? [{ field: "device_id", operator: "in", value: orgDeviceIds }]
         : [{ field: "device_id", operator: "eq", value: "none" }])
     ] as any,
     pagination: { pageSize: 1 },
-    queryOptions: { enabled: orgDeviceIds.length > 0 },
+    queryOptions: { 
+      enabled: orgDeviceIds.length > 0,
+    },
   });
 
   const activeAlertsCount = alertsQuery.data?.total || 0;
