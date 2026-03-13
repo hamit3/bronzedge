@@ -15,6 +15,7 @@ import {
   Tooltip,
   Spin,
   Tag,
+  Button,
 } from "antd";
 import {
   LogoutOutlined,
@@ -439,6 +440,25 @@ export const Header: React.FC = () => {
               </AutoComplete>
             </div>
           )}
+
+          {/* Refresh Button */}
+          <Tooltip title="Refresh Application">
+            <Button
+              type="text"
+              icon={<SyncOutlined />}
+              onClick={() => window.location.reload()}
+              className="header-tool-button"
+              style={{
+                color: "rgba(255,255,255,0.45)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+              }}
+            />
+          </Tooltip>
 
           {/* User Profile */}
           <Dropdown
