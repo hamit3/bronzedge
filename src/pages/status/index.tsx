@@ -8,7 +8,8 @@ import {
     Tooltip, 
     Spin, 
     Alert, 
-    Divider 
+    Divider,
+    Button
 } from "antd";
 import { 
     CheckCircleFilled, 
@@ -18,8 +19,9 @@ import {
     DatabaseOutlined,
     CloudServerOutlined,
     InfoCircleOutlined,
-    ArrowLeftOutlined
+    SyncOutlined
 } from "@ant-design/icons";
+import { App as AntdApp } from "antd";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { supabaseClient } from "../../providers/supabase-client";
@@ -44,7 +46,9 @@ const REFRESH_INTERVAL = 300000; // 5 minutes
 export const StatusPage: React.FC = () => {
     const [checks, setChecks] = useState<HealthCheck[]>([]);
     const [loading, setLoading] = useState(true);
+    const [triggering, setTriggering] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { message } = AntdApp.useApp();
 
     const fetchStatus = async () => {
         try {
@@ -65,6 +69,29 @@ export const StatusPage: React.FC = () => {
         }
     };
 
+    const triggerManualCheck = async () => {
+        setTriggering(true);
+        try {
+            // Doğrudan fonskiyonu çağırmak yerine veritabanına bir "tetikleme kaydı" atıyoruz.
+            // Bu işlem asla CORS hatası vermez.
+            const { error: insertError } = await supabaseClient
+                .from('manual_triggers')
+                .insert([{ type: 'health_check' }]);
+
+            if (insertError) throw insertError;
+            
+            message.success("Trigger record saved to database!");
+            
+            // Webhook'un çalışıp veriyi güncellemesi için biraz zaman tanıyalım
+            setTimeout(fetchStatus, 4000);
+        } catch (err: any) {
+            console.error("Trigger error:", err);
+            message.error("Failed to save trigger: " + (err.message || "Database Error"));
+        } finally {
+            setTriggering(false);
+        }
+    };
+
     useEffect(() => {
         fetchStatus();
         const interval = setInterval(fetchStatus, REFRESH_INTERVAL);
@@ -81,7 +108,9 @@ export const StatusPage: React.FC = () => {
     if (loading && checks.length === 0) {
         return (
             <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050a14' }}>
-                <Spin size="large" tip="Loading System Status..." />
+                <Spin size="large" tip="Loading System Status...">
+                    <div style={{ padding: '50px' }} />
+                </Spin>
             </div>
         );
     }
@@ -91,28 +120,36 @@ export const StatusPage: React.FC = () => {
             minHeight: '100vh', 
             background: '#050a14', 
             color: '#fff', 
-            padding: '40px 20px',
+            padding: '24px 20px',
             fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         }}>
-            <div style={{ maxWidth: 900, margin: '0 auto' }}>
+            <div style={{ maxWidth: 800, margin: '0 auto' }}>
                 
                 {/* Header */}
-                <div style={{ marginBottom: 40, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
-                        <Link to="/monitoring" style={{ color: '#f88601', display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 14 }}>
-                            <ArrowLeftOutlined /> Back to Dashboard
-                        </Link>
-                        <Title level={2} style={{ color: '#fff', margin: 0 }}>System Status</Title>
-                        <Text style={{ color: 'rgba(255,255,255,0.45)' }}>Real-time service health and historical uptime</Text>
+                        <Title level={4} style={{ color: '#fff', margin: 0 }}>System Status</Title>
+                        <Text style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}>Service health and historical uptime</Text>
                     </div>
-                    {latest && (
-                        <div style={{ textAlign: 'right' }}>
-                            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, display: 'block' }}>
-                                <ClockCircleOutlined style={{ marginRight: 6 }} />
-                                Last updated: {dayjs(latest.checked_at).fromNow()}
-                            </Text>
-                        </div>
-                    )}
+                    <Space size={16} align="end">
+                        <Button 
+                            size="small"
+                            icon={<SyncOutlined spin={triggering} />} 
+                            onClick={triggerManualCheck}
+                            loading={triggering}
+                            style={{ color: '#f88601' }}
+                        >
+                            Run Manual Check
+                        </Button>
+                        {latest && (
+                            <div style={{ textAlign: 'right' }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, display: 'block' }}>
+                                    <ClockCircleOutlined style={{ marginRight: 6 }} />
+                                    Updated: {dayjs(latest.checked_at).fromNow()}
+                                </Text>
+                            </div>
+                        )}
+                    </Space>
                 </div>
 
                 {error && (
@@ -121,54 +158,55 @@ export const StatusPage: React.FC = () => {
                         description={error}
                         type="error"
                         showIcon
-                        style={{ marginBottom: 24, borderRadius: 12 }}
+                        style={{ marginBottom: 16, borderRadius: 8 }}
                     />
                 )}
 
                 {/* Overall Status Card */}
                 {!latest ? (
-                    <Card style={{ background: '#0d1424', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, textAlign: 'center', padding: '40px 0' }}>
-                        <InfoCircleOutlined style={{ fontSize: 40, color: 'rgba(255,255,255,0.2)', marginBottom: 16 }} />
-                        <Title level={4} style={{ color: 'rgba(255,255,255,0.45)' }}>No health data available yet</Title>
+                    <Card style={{ background: '#0d1424', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, textAlign: 'center', padding: '30px 0' }}>
+                        <InfoCircleOutlined style={{ fontSize: 32, color: 'rgba(255,255,255,0.2)', marginBottom: 16 }} />
+                        <Title level={5} style={{ color: 'rgba(255,255,255,0.45)' }}>No health data available yet</Title>
                     </Card>
                 ) : (
                     <>
                         <Card 
                             style={{ 
-                                background: latest.overall_ok ? 'rgba(34, 197, 94, 0.05)' : 'rgba(239, 68, 68, 0.05)',
+                                background: latest.overall_ok ? 'rgba(34, 197, 94, 0.04)' : 'rgba(239, 68, 68, 0.04)',
                                 borderColor: latest.overall_ok ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                                borderRadius: 16,
-                                marginBottom: 24,
-                                boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+                                borderRadius: 12,
+                                marginBottom: 20,
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
                             }}
+                            styles={{ body: { padding: '16px 20px' } }}
                         >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                                 <div className="pulse-container">
                                     {latest.overall_ok ? (
-                                        <CheckCircleFilled style={{ fontSize: 48, color: '#22c55e' }} />
+                                        <CheckCircleFilled style={{ fontSize: 32, color: '#22c55e' }} />
                                     ) : (
-                                        <CloseCircleFilled style={{ fontSize: 48, color: '#ef4444' }} />
+                                        <CloseCircleFilled style={{ fontSize: 32, color: '#ef4444' }} />
                                     )}
                                 </div>
                                 <div>
-                                    <Title level={3} style={{ color: '#fff', margin: 0 }}>
-                                        {latest.overall_ok ? "All Systems Operational" : "System Disruption Detected"}
+                                    <Title level={5} style={{ color: '#fff', margin: 0 }}>
+                                        {latest.overall_ok ? "Systems Operational" : "Service Disruption"}
                                     </Title>
-                                    <Text style={{ color: 'rgba(255,255,255,0.5)' }}>
+                                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
                                         {latest.overall_ok 
-                                            ? "All background services and cloud integrations are performing optimally." 
-                                            : "One or more services are currently experiencing issues."}
+                                            ? "All cloud integrations and services are performing optimally." 
+                                            : "Issues detected in one or more core services."}
                                     </Text>
                                 </div>
                             </div>
                         </Card>
 
                         {/* Component List */}
-                        <div style={{ marginBottom: 40 }}>
-                            <Title level={5} style={{ color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 16, fontSize: 12 }}>
+                        <div style={{ marginBottom: 30 }}>
+                            <Title level={5} style={{ color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12, fontSize: 11 }}>
                                 Component Status
                             </Title>
-                            <Card style={{ background: '#0d1424', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16 }} styles={{ body: { padding: 0 } }}>
+                            <Card style={{ background: '#0d1424', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12 }} styles={{ body: { padding: 0 } }}>
                                 <ComponentRow 
                                     label="nRF Cloud → Edge Function" 
                                     ok={latest.edge_function_ok} 
@@ -190,35 +228,35 @@ export const StatusPage: React.FC = () => {
                         </div>
 
                         {/* Uptime Timeline */}
-                        <div style={{ marginBottom: 40 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                                <Title level={5} style={{ color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '1px', margin: 0, fontSize: 12 }}>
+                        <div style={{ marginBottom: 30 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                <Title level={5} style={{ color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '1px', margin: 0, fontSize: 11 }}>
                                     Activity (Last 48 Hours)
                                 </Title>
-                                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>
-                                    99.9% Historical Uptime
+                                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>
+                                    99.9% Uptime
                                 </Text>
                             </div>
-                            <Card style={{ background: '#0d1424', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: '20px 10px' }}>
-                                <div style={{ display: 'flex', gap: 3, flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: 10 }}>
+                            <Card style={{ background: '#0d1424', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '12px 10px' }}>
+                                <div style={{ display: 'flex', gap: 2, flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: 8 }}>
                                     {timelineData.map((check) => (
                                         <Tooltip 
                                             key={check.id} 
                                             title={
-                                                <div style={{ fontSize: 11 }}>
+                                                <div style={{ fontSize: 10 }}>
                                                     <strong>{dayjs(check.checked_at).format("MMM D, HH:mm")}</strong>
                                                     <br />
-                                                    {check.overall_ok ? "Status: Healthy" : "Status: Issue Reported"}
-                                                    {check.error_detail && <><br /><span style={{ color: '#ef4444' }}>Error: {check.error_detail}</span></>}
+                                                    {check.overall_ok ? "Healthy" : "Issue Reported"}
+                                                    {check.error_detail && <><br /><span style={{ color: '#ef4444' }}>{check.error_detail}</span></>}
                                                 </div>
                                             }
                                         >
                                             <div style={{ 
-                                                flex: '1 0 8px', 
-                                                height: 32, 
+                                                flex: '1 0 6px', 
+                                                height: 24, 
                                                 background: check.overall_ok ? '#22c55e' : '#ef4444',
                                                 borderRadius: 2,
-                                                opacity: check.overall_ok ? 0.8 : 1,
+                                                opacity: check.overall_ok ? 0.7 : 1,
                                                 transition: 'transform 0.2s',
                                                 cursor: 'pointer'
                                             }} 
@@ -227,34 +265,31 @@ export const StatusPage: React.FC = () => {
                                         </Tooltip>
                                     ))}
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 4px 0', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                                    <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>{dayjs().subtract(48, 'hour').format("MMM D")}</Text>
-                                    <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>Today</Text>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 4px 0', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                                    <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>{dayjs().subtract(48, 'hour').format("MMM D")}</Text>
+                                    <Text style={{ fontSize: 9, color: 'rgba(255,255,255,0.2)' }}>Today</Text>
                                 </div>
                             </Card>
                         </div>
 
                         {/* Recent Error Detail */}
                         {lastError && (
-                            <div style={{ marginBottom: 40 }}>
-                                 <Title level={5} style={{ color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 16, fontSize: 12 }}>
+                            <div style={{ marginBottom: 30 }}>
+                                 <Title level={5} style={{ color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12, fontSize: 11 }}>
                                     Incident Report
                                 </Title>
                                 <Alert
-                                    message="Technical Detail Found"
+                                    message="Technical Signature Found"
                                     description={
                                         <div>
-                                            <Text style={{ color: '#fff', fontSize: 13, display: 'block', marginBottom: 8 }}>
-                                                Our monitors captured the following disruption signature:
-                                            </Text>
                                             <code style={{ 
                                                 display: 'block', 
                                                 background: 'rgba(0,0,0,0.3)', 
-                                                padding: 12, 
+                                                padding: 10, 
                                                 borderRadius: 6, 
-                                                fontSize: 12, 
+                                                fontSize: 11, 
                                                 color: '#ef4444',
-                                                border: '1px solid rgba(239, 68, 68, 0.2)'
+                                                border: '1px solid rgba(239, 68, 68, 0.15)'
                                             }}>
                                                 {lastError}
                                             </code>
@@ -262,7 +297,7 @@ export const StatusPage: React.FC = () => {
                                     }
                                     type="warning"
                                     showIcon
-                                    style={{ background: 'rgba(214, 158, 46, 0.05)', border: '1px solid rgba(214, 158, 46, 0.2)', borderRadius: 12 }}
+                                    style={{ background: 'rgba(214, 158, 46, 0.04)', border: '1px solid rgba(214, 158, 46, 0.15)', borderRadius: 8 }}
                                 />
                             </div>
                         )}
@@ -270,8 +305,8 @@ export const StatusPage: React.FC = () => {
                 )}
 
                 {/* Footer */}
-                <div style={{ textAlign: 'center', opacity: 0.3, marginTop: 60 }}>
-                    <Text style={{ fontSize: 12 }}>BronzEdge Platform Uptime v2.0 • Auto-refresh active</Text>
+                <div style={{ textAlign: 'center', opacity: 0.2, marginTop: 40 }}>
+                    <Text style={{ fontSize: 11 }}>BronzEdge Platform Uptime • Auto-refresh active</Text>
                 </div>
             </div>
 
@@ -287,23 +322,23 @@ export const StatusPage: React.FC = () => {
                     top: 0;
                     left: 0;
                     border-radius: 50%;
-                    animation: circle-pulse 2s infinite;
+                    animation: circle-pulse 2.5s infinite;
                     pointer-events: none;
                 }
                 
                 @keyframes circle-pulse {
-                    0% { transform: scale(1); opacity: 0.5; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-                    70% { transform: scale(1.5); opacity: 0; box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+                    0% { transform: scale(1); opacity: 0.4; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+                    70% { transform: scale(1.4); opacity: 0; box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
                     100% { transform: scale(1); opacity: 0; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
                 }
 
                 .timeline-block:hover {
-                    transform: scaleY(1.2);
+                    transform: scaleY(1.3);
                     opacity: 1 !important;
                 }
 
                 .component-row:hover {
-                    background: rgba(255,255,255,0.02);
+                    background: rgba(255,255,255,0.01);
                 }
             `}</style>
         </div>
@@ -311,19 +346,19 @@ export const StatusPage: React.FC = () => {
 };
 
 const ComponentRow: React.FC<{ label: string, ok: boolean, icon: React.ReactNode }> = ({ label, ok, icon }) => (
-    <div className="component-row" style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s' }}>
-        <Space size={16}>
-            <div style={{ color: '#f88601', fontSize: 18 }}>{icon}</div>
-            <Text style={{ color: '#fff', fontSize: 14 }}>{label}</Text>
-        </Space>
+    <div className="component-row" style={{ padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'background 0.2s' }}>
         <Space size={12}>
-            <Text style={{ color: ok ? '#22c55e' : '#ef4444', fontWeight: 600, fontSize: 13 }}>
-                {ok ? "Operational" : "Degraded Performance"}
+            <div style={{ color: '#f88601', fontSize: 16 }}>{icon}</div>
+            <Text style={{ color: '#fff', fontSize: 13 }}>{label}</Text>
+        </Space>
+        <Space size={10}>
+            <Text style={{ color: ok ? '#22c55e' : '#ef4444', fontWeight: 600, fontSize: 12 }}>
+                {ok ? "Operational" : "Degraded"}
             </Text>
             {ok ? (
-                <CheckCircleFilled style={{ color: '#22c55e', fontSize: 16 }} />
+                <CheckCircleFilled style={{ color: '#22c55e', fontSize: 14 }} />
             ) : (
-                <CloseCircleFilled style={{ color: '#ef4444', fontSize: 16 }} />
+                <CloseCircleFilled style={{ color: '#ef4444', fontSize: 14 }} />
             )}
         </Space>
     </div>
