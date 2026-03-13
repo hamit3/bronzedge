@@ -315,6 +315,7 @@ export const EnvironmentAnalysisPage: React.FC = () => {
                             </Space>
                         } 
                         className="shadow-premium" 
+                        variant="borderless"
                         styles={{ body: { padding: 0 } }} 
                         style={{ background: '#0d1424', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden' }}
                     >

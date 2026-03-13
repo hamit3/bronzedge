@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useGetIdentity, useNotification } from "@refinedev/core";
+import ImgCrop from "antd-img-crop";
 import {
     Card,
     Button,
@@ -7,25 +8,30 @@ import {
     Space,
     Spin,
     Alert,
+    Avatar,
+    Upload,
+    Divider,
+    App,
 } from "antd";
 import {
     KeyOutlined,
     MailOutlined,
     CheckCircleOutlined,
+    UploadOutlined,
+    UserOutlined
 } from "@ant-design/icons";
 import { supabaseClient } from "../../providers/supabase-client";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
-interface ProfileTabProps {
-}
-
-export const ProfileTab: React.FC<ProfileTabProps> = () => {
-    const { data: identity, isLoading: identityLoading } = useGetIdentity<any>();
+export const ProfileTab: React.FC = () => {
+    const { message, notification } = App.useApp();
+    const { data: identity, isLoading: identityLoading, refetch } = useGetIdentity<any>();
     const { open } = useNotification();
 
     const [pwResetSent, setPwResetSent] = useState(false);
     const [pwResetLoading, setPwResetLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     const handlePasswordReset = async () => {
         if (!identity?.email) return;
@@ -46,6 +52,47 @@ export const ProfileTab: React.FC<ProfileTabProps> = () => {
         }
     };
 
+    const handleAvatarUpload = async (options: any) => {
+        const { file, onSuccess, onError } = options;
+        setUploading(true);
+        
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${identity.realId || identity.id}-${Date.now()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            // 1. Upload to Supabase Storage
+            const { error: uploadError } = await supabaseClient.storage
+                .from('avatars')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabaseClient.storage
+                .from('avatars')
+                .getPublicUrl(filePath);
+
+            // 3. Update Profile Table
+            const { error: updateError } = await supabaseClient
+                .from('profiles')
+                .update({ avatar_url: publicUrl })
+                .eq('id', identity.realId || identity.id);
+
+            if (updateError) throw updateError;
+
+            message.success("Profile photo updated successfully!");
+            onSuccess("ok");
+            refetch(); // Refresh identity to update header
+        } catch (error: any) {
+            console.error("Upload error:", error);
+            message.error(`Upload failed: ${error.message}`);
+            onError(error);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     if (identityLoading) {
         return (
             <div style={centeredStyle}>
@@ -55,12 +102,72 @@ export const ProfileTab: React.FC<ProfileTabProps> = () => {
     }
 
     const email = identity?.email ?? "—";
+    const displayName = identity?.full_name || identity?.name || email;
 
     return (
-        <div style={{ maxWidth: 460 }}>
+        <div style={{ maxWidth: 500 }}>
+            {/* Profile Brief Section */}
+            <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 24, 
+                marginBottom: 32, 
+                padding: '20px', 
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: 16
+            }}>
+                <div style={{ position: 'relative' }}>
+                    <ImgCrop showGrid>
+                        <Upload
+                            name="avatar"
+                            showUploadList={false}
+                            customRequest={handleAvatarUpload}
+                        >
+                            <div style={{ cursor: 'pointer', position: 'relative' }}>
+                                <Avatar 
+                                    size={100} 
+                                    src={identity?.avatar_url} 
+                                    icon={<UserOutlined />}
+                                    style={{ 
+                                        border: '3px solid #f88601',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                        background: '#161f33',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                />
+                                <div style={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    right: 0,
+                                    background: '#f88601',
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    border: '3px solid #0d1424'
+                                }}>
+                                    {uploading ? <Spin size="small" /> : <UploadOutlined style={{ color: '#fff', fontSize: 12 }} />}
+                                </div>
+                            </div>
+                        </Upload>
+                    </ImgCrop>
+                </div>
+                <div>
+                    <Title level={4} style={{ margin: 0, color: '#fff' }}>{displayName}</Title>
+                    <Text type="secondary" style={{ fontSize: 13 }}>{identity?.role?.toUpperCase()} | {email}</Text>
+                </div>
+            </div>
+
+            <Divider style={{ borderColor: 'rgba(255,255,255,0.06)' }} />
+
             {/* Security Settings */}
             <Card
-                bordered={false}
+                variant="borderless"
                 className="profile-section-card"
                 title={
                     <Space style={{ color: "#f88601" }}>
@@ -73,8 +180,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = () => {
                     border: "1px solid rgba(255,255,255,0.06)",
                     borderRadius: 12,
                 }}
-                headStyle={{ borderBottom: "1px solid rgba(255,255,255,0.04)", padding: "0 20px" }}
-                bodyStyle={{ padding: 20 }}
+                styles={{
+                    header: { borderBottom: "1px solid rgba(255,255,255,0.04)", padding: "0 20px" },
+                    body: { padding: 20 }
+                }}
             >
                 {pwResetSent ? (
                     <Alert
